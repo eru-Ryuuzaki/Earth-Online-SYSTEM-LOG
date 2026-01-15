@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Clock, Settings, Plus } from "lucide-react";
+import { Clock, Settings, Plus, Book } from "lucide-react";
 import HUDStats from "./components/HUDStats";
 import LogTimeline from "./components/LogTimeline";
 import LogForm from "./components/LogForm";
 import SettingsPanel from "./components/SettingsPanel";
+import SystemLogModule from "./components/SystemLog/SystemLogModule";
 import { generateLog, calculateFrame } from "./utils/logGenerator";
 
 const App = () => {
@@ -12,6 +13,7 @@ const App = () => {
   const [autoGenerate, setAutoGenerate] = useState(true);
   const [showLogForm, setShowLogForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSystemLog, setShowSystemLog] = useState(false);
   const [playerStats, setPlayerStats] = useState({
     hp: 85,
     maxHp: 100,
@@ -219,6 +221,16 @@ const App = () => {
       <div className="max-w-7xl mx-auto mb-4">
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setShowSystemLog(true)}
+            className="flex items-center gap-2 bg-cyan-900/50 hover:bg-cyan-800/50 border border-cyan-500/50 px-4 py-2 rounded-lg transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)] hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+          >
+            <Book className="w-4 h-4 text-cyan-400" />
+            <span className="font-mono text-cyan-100 font-bold tracking-wider">
+              SYSTEM LOG
+            </span>
+          </button>
+
+          <button
             onClick={() => setShowLogForm(!showLogForm)}
             className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 px-4 py-2 rounded-lg transition-colors"
           >
@@ -247,6 +259,10 @@ const App = () => {
           </div>
         </div>
       </div>
+
+      {showSystemLog && (
+        <SystemLogModule onClose={() => setShowSystemLog(false)} />
+      )}
 
       {showSettings && (
         <SettingsPanel
