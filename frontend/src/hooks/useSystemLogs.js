@@ -1,77 +1,77 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 
-const STORAGE_KEY = "earth_ol_system_logs";
-
-const SYSTEM_FEEDBACK_POOL = [
-  "[SYSTEM]: Entry recorded. No improvement detected.",
-  "[SYSTEM]: Survival confirmed.",
-  "[SYSTEM]: Emotional fluctuation archived.",
-  "[SYSTEM]: Timeline extended.",
-  "[SYSTEM]: Existence verified.",
-  "[SYSTEM]: Memory fragment secured.",
-  "[SYSTEM]: Status quo maintained.",
-  "[SYSTEM]: Data point added to entropy.",
-];
+const API_URL = "http://localhost:3000/api";
 
 export const useSystemLogs = () => {
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Load from local storage on mount
-  useEffect(() => {
-    const savedLogs = localStorage.getItem(STORAGE_KEY);
-    if (savedLogs) {
-      try {
-        setLogs(JSON.parse(savedLogs));
-      } catch (e) {
-        console.error("Failed to parse system logs", e);
-      }
+  const fetchLogs = useCallback(async () => {
+    const token = localStorage.getItem("access_token");
+    const userStr = localStorage.getItem("player_info");
+
+    if (!token || !userStr) return;
+
+    const user = JSON.parse(userStr);
+
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/logs/timeline`, {
+        params: { userId: user._id, limit: 100 },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // 适配数据结构
+      const allLogs = res.data.logs || [];
+      // Filter to show only USER_LOG entries
+      const diaryLogs = allLogs.filter((log) => log.category === "USER_LOG");
+      setLogs(diaryLogs);
+    } catch (err) {
+      console.error("Failed to fetch system logs", err);
     }
+    setLoading(false);
   }, []);
 
-  // Save to local storage whenever logs change
+  // Load on mount
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
-  }, [logs]);
+    fetchLogs();
+  }, [fetchLogs]);
 
-  const getRandomFeedback = () => {
-    const index = Math.floor(Math.random() * SYSTEM_FEEDBACK_POOL.length);
-    return SYSTEM_FEEDBACK_POOL[index];
-  };
+  const addLog = async (content, type) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return false;
 
-  const addLog = (content, status) => {
-    const now = new Date();
-    const newLog = {
-      id: Date.now(), // Simple ID
-      entryIdDisplay: `#${Math.floor(Math.random() * 9000) + 1000}`, // Mock ID like #1024
-      timestamp: now.toISOString(),
-      content: content || null,
-      status: status || "UNKNOWN",
-      systemFeedback: getRandomFeedback(),
-      createdAt: now.toISOString(),
-      deletedAt: null,
-    };
-
-    setLogs((prev) => [newLog, ...prev]);
-    return newLog;
+    try {
+      await axios.post(
+        `${API_URL}/logs/commit`,
+        {
+          content,
+          status: "ACTIVE", // Default status for user logs
+          category: "USER_LOG",
+          type: type || "NOTE", // The selected type (NOTE, TODO, etc.)
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      await fetchLogs(); // Refresh list immediately
+      return true;
+    } catch (err) {
+      console.error("Failed to add log", err);
+      return false;
+    }
   };
 
   const deleteLog = (id) => {
-    // Soft delete
-    setLogs((prev) =>
-      prev.map((log) =>
-        log.id === id ? { ...log, deletedAt: new Date().toISOString() } : log
-      )
-    );
-  };
-
-  const getActiveLogs = () => {
-    return logs.filter((log) => !log.deletedAt);
+    // 暂未实现后端删除接口
+    console.warn("Delete API not available");
   };
 
   return {
-    logs: getActiveLogs(),
-    allLogs: logs,
+    logs,
+    loading,
     addLog,
     deleteLog,
+    refreshLogs: fetchLogs,
   };
 };

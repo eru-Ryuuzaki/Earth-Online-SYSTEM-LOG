@@ -10,45 +10,44 @@ const SettingsPanel = ({ playerStats, onUpdateBirthday, onClose }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto mb-4">
-      <div className="bg-black/60 backdrop-blur border border-cyan-500/30 rounded-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-cyan-400">Settings</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-5 h-5" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="w-full max-w-lg bg-gray-950 border border-cyan-500/30 rounded-xl shadow-[0_0_40px_rgba(8,145,178,0.2)] p-6 relative animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between mb-6 border-b border-cyan-900/30 pb-4">
+          <h3 className="text-xl font-bold text-cyan-400 tracking-wide">SYSTEM SETTINGS</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
-            <label className="block text-sm text-gray-400 mb-2">
+            <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">
               Player Spawn Date (Birthday)
             </label>
             <input
               type="date"
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
-              className="w-full md:w-auto bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
+              className="w-full bg-black/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              This affects the Frame counter calculation (seconds since birth ×
-              60 FPS)
+            <p className="text-xs text-gray-500 mt-2 font-mono">
+              Adjusts global frame counter synchronization.
             </p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-4 border-t border-cyan-900/30">
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 px-6 py-2 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-lg hover:shadow-cyan-500/20"
             >
               <Save className="w-4 h-4" />
-              Save
+              SAVE CONFIG
             </button>
             <button
               onClick={onClose}
-              className="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-lg transition-colors"
+              className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-6 py-3 rounded-lg transition-colors"
             >
-              Cancel
+              CANCEL
             </button>
           </div>
         </div>

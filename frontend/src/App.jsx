@@ -1,35 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import HUDStats from "./components/HUDStats";
-import LogTimeline from "./components/LogTimeline";
-import LogForm from "./components/LogForm";
 import SettingsPanel from "./components/SettingsPanel";
-import SystemLogModule from "./components/SystemLog/SystemLogModule";
 import BiosBoot from "./components/BiosBoot";
 import TerminalLogin from "./components/TerminalLogin";
-import ActionBar from "./components/ActionBar";
+import SystemLogModule from "./components/SystemLog/SystemLogModule";
 import { useGameEngine } from "./hooks/useGameEngine";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showLogForm, setShowLogForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showSystemLog, setShowSystemLog] = useState(false);
-  const [collapsedMonths, setCollapsedMonths] = useState({});
-  const [collapsedYears, setCollapsedYears] = useState({});
-  const logsEndRef = useRef(null);
 
   const {
-    logs,
-    setLogs,
     isBooting,
-    autoGenerate,
-    setAutoGenerate,
     playerStats,
     setPlayerStats,
     buffs,
     debuffs,
     handleBootComplete,
-    addLog
   } = useGameEngine({
     hp: 85,
     maxHp: 100,
@@ -42,7 +29,7 @@ const App = () => {
   });
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     if (token) {
       setIsAuthenticated(true);
     }
@@ -50,27 +37,17 @@ const App = () => {
 
   const handleLoginSuccess = (playerData) => {
     if (playerData) {
-        setPlayerStats(prev => ({
-            ...prev,
-            hp: playerData.hp || prev.hp,
-            maxHp: playerData.maxHp || prev.maxHp,
-            mental: playerData.mental || prev.mental,
-            coins: playerData.coins || prev.coins,
-            level: playerData.level || prev.level,
-            exp: playerData.exp || prev.exp,
-        }));
+      setPlayerStats((prev) => ({
+        ...prev,
+        hp: playerData.hp || prev.hp,
+        maxHp: playerData.maxHp || prev.maxHp,
+        mental: playerData.mental || prev.mental,
+        coins: playerData.coins || prev.coins,
+        level: playerData.level || prev.level,
+        exp: playerData.exp || prev.exp,
+      }));
     }
     setIsAuthenticated(true);
-  };
-
-  // 自动滚动
-  useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [logs]);
-
-  const handleAddLog = (logData) => {
-    addLog(logData);
-    setShowLogForm(false);
   };
 
   const handleUpdateBirthday = (newBirthday) => {
@@ -96,30 +73,31 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 text-white p-6 font-mono">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 text-white p-6 font-mono overflow-hidden flex flex-col">
       {isBooting && <BiosBoot onComplete={handleBootComplete} />}
-      
-      <div className={`transition-opacity duration-1000 ${isBooting ? 'opacity-0' : 'opacity-100'}`}>
-        <HUDStats
-          playerStats={playerStats}
-          buffs={buffs}
-          debuffs={debuffs}
-          getPlayerAge={getPlayerAge}
-          getSecondsSinceBirth={getSecondsSinceBirth}
-        />
 
-        <ActionBar
-          onShowSystemLog={() => setShowSystemLog(true)}
-          onToggleLogForm={() => setShowLogForm(!showLogForm)}
-          onToggleSettings={() => setShowSettings(!showSettings)}
-          autoGenerate={autoGenerate}
-          setAutoGenerate={setAutoGenerate}
-        />
+      <div
+        className={`transition-opacity duration-1000 flex flex-col h-full ${
+          isBooting ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        {/* Top HUD */}
+        <div className="mb-8 shrink-0">
+          <HUDStats
+            playerStats={playerStats}
+            buffs={buffs}
+            debuffs={debuffs}
+            getPlayerAge={getPlayerAge}
+            getSecondsSinceBirth={getSecondsSinceBirth}
+          />
+        </div>
 
-        {showSystemLog && (
-          <SystemLogModule onClose={() => setShowSystemLog(false)} />
-        )}
+        {/* Main Workspace: System Log Module */}
+        <div className="flex-1 min-h-0 flex flex-col">
+          <SystemLogModule onToggleSettings={() => setShowSettings(true)} />
+        </div>
 
+        {/* Settings Overlay */}
         {showSettings && (
           <SettingsPanel
             playerStats={playerStats}
@@ -127,22 +105,6 @@ const App = () => {
             onClose={() => setShowSettings(false)}
           />
         )}
-
-        {showLogForm && (
-          <LogForm
-            onSubmit={handleAddLog}
-            onCancel={() => setShowLogForm(false)}
-          />
-        )}
-
-        <LogTimeline
-          logs={logs}
-          collapsedMonths={collapsedMonths}
-          collapsedYears={collapsedYears}
-          setCollapsedMonths={setCollapsedMonths}
-          setCollapsedYears={setCollapsedYears}
-          logsEndRef={logsEndRef}
-        />
       </div>
     </div>
   );
