@@ -1,3 +1,7 @@
+# --- Global & General ---
+# Dependencies
+node_modules/
+
 # Logs
 logs
 *.log
@@ -7,18 +11,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+# OS specific
 .DS_Store
-build
-dist
-dist-ssr
-coverage
-*.local
+Thumbs.db
+*.sw?
 
-/cypress/videos/
-/cypress/screenshots/
-
-# Editor directories and files
+# Editor directories
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -26,6 +24,23 @@ coverage
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
 
+# Environment variables (Critical for Security)
+.env
+.env.*.local
+*.local
+
+# --- Frontend (Vite/React) ---
+dist/
+dist-ssr/
+build/
+coverage/
 *.tsbuildinfo
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+
+# --- Backend (NestJS) ---
+# NestJS build output is also 'dist', covered above
+# Additional backend specific if needed
