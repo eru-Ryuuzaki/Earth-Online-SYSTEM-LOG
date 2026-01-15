@@ -3,8 +3,11 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  app.setGlobalPrefix('api');
   app.enableCors(); // Enable CORS for frontend
+  
   await app.listen(3000);
-  console.log(`System Online. Uplink established on port 3000.`);
+  console.log(`System Online. Uplink established on port 3000/api`);
 }
 bootstrap();

@@ -5,11 +5,6 @@ import { PlayerService } from './player.service';
 export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
 
-  @Post('init')
-  async initialize(@Body('username') username: string) {
-    return this.playerService.create(username);
-  }
-
   @Get(':username')
   async getStatus(@Param('username') username: string) {
     return this.playerService.findByUsername(username);

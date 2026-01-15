@@ -7,8 +7,8 @@ import { Player, PlayerDocument } from './schemas/player.schema';
 export class PlayerService {
   constructor(@InjectModel(Player.name) private playerModel: Model<PlayerDocument>) {}
 
-  async create(username: string) {
-    const createdPlayer = new this.playerModel({ username });
+  async create(username: string, passwordHash: string) {
+    const createdPlayer = new this.playerModel({ username, password: passwordHash });
     return createdPlayer.save();
   }
 

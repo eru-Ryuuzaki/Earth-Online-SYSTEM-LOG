@@ -8,6 +8,7 @@ import {
   TrendingDown,
   Cake,
 } from "lucide-react";
+import HeartbeatWave from "./HeartbeatWave";
 
 const HUDStats = ({
   playerStats,
@@ -112,6 +113,9 @@ const HUDStats = ({
                 {playerStats.coins.toLocaleString()}
               </span>
             </div>
+            
+            {/* 实时波形监控 */}
+            <HeartbeatWave color="#06b6d4" height={50} />
           </div>
 
           {/* 右侧：Buffs 和 Debuffs */}

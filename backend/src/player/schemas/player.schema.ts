@@ -8,6 +8,9 @@ export class Player {
   @Prop({ required: true, unique: true })
   username: string;
 
+  @Prop({ required: true })
+  password: string;
+
   @Prop()
   email: string;
 

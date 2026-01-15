@@ -5,9 +5,12 @@ import LogTimeline from "./components/LogTimeline";
 import LogForm from "./components/LogForm";
 import SettingsPanel from "./components/SettingsPanel";
 import SystemLogModule from "./components/SystemLog/SystemLogModule";
+import BiosBoot from "./components/BiosBoot";
+import TerminalLogin from "./components/TerminalLogin";
 import { generateLog, calculateFrame } from "./utils/logGenerator";
 
 const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [logs, setLogs] = useState([]);
   const [isBooting, setIsBooting] = useState(true);
   const [autoGenerate, setAutoGenerate] = useState(true);
@@ -31,6 +34,29 @@ const App = () => {
   const logsEndRef = useRef(null);
   const autoGenerateInterval = useRef(null);
 
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLoginSuccess = (playerData) => {
+    if (playerData) {
+      setPlayerStats((prev) => ({
+        ...prev,
+        hp: playerData.hp || prev.hp,
+        maxHp: playerData.maxHp || prev.maxHp,
+        mental: playerData.mental || prev.mental,
+        coins: playerData.coins || prev.coins,
+        level: playerData.level || prev.level,
+        exp: playerData.exp || prev.exp,
+        // Keep birthday as is or update if backend provides
+      }));
+    }
+    setIsAuthenticated(true);
+  };
+
   const getPlayerAge = () => {
     const birthday = new Date(playerStats.birthday);
     const today = new Date();
@@ -45,119 +71,55 @@ const App = () => {
     return Math.floor((now - birthday) / 1000);
   };
 
-  // 初始化启动日志
-  useEffect(() => {
-    const bootSequence = [
+  // Handle Boot Completion
+  const handleBootComplete = () => {
+    setIsBooting(false);
+    const now = new Date();
+    setLogs((prev) => [
+      ...prev,
       {
-        delay: 0,
-        msg: "EarthOL System v2025.12.23 initializing...",
-        type: "INFO",
-        category: "system",
-      },
-      {
-        delay: 300,
-        msg: "Loading player data...",
-        type: "INFO",
-        category: "system",
-      },
-      {
-        delay: 600,
-        msg: `Player Birth Date: ${
-          playerStats.birthday
-        } [Age: Level ${getPlayerAge()}]`,
-        type: "INFO",
-        category: "system",
-      },
-      {
-        delay: 900,
-        msg: `Runtime: ${getSecondsSinceBirth().toLocaleString()} seconds [${(
-          getSecondsSinceBirth() * 60
-        ).toLocaleString()} frames]`,
-        type: "INFO",
-        category: "system",
-      },
-      {
-        delay: 1200,
-        msg: "Connecting to Reality Server...",
-        type: "INFO",
-        category: "system",
-      },
-      {
-        delay: 1500,
-        msg: "Synchronizing consciousness...",
+        id: Date.now(),
+        timestamp:
+          now.toTimeString().split(" ")[0] +
+          "." +
+          now.getMilliseconds().toString().padStart(3, "0"),
+        date: now.toISOString().split("T")[0],
+        frame: calculateFrame(playerStats.birthday),
         type: "SUCCESS",
         category: "system",
+        message: "System initialized. Welcome back, Player.",
+        icon: "✓",
+        fullDate: now,
       },
-      {
-        delay: 1800,
-        msg: "Loading world state...",
-        type: "INFO",
-        category: "system",
-      },
-      {
-        delay: 2100,
-        msg: "Rendering environment...",
-        type: "INFO",
-        category: "system",
-      },
-      {
-        delay: 2400,
-        msg: "System ready. Welcome back, Player.",
-        type: "SUCCESS",
-        category: "system",
-      },
-    ];
+    ]);
 
-    bootSequence.forEach(({ delay, msg, type, category }) => {
-      setTimeout(() => {
-        const now = new Date();
-        const log = {
-          id: Date.now() + Math.random(),
-          timestamp:
-            now.toTimeString().split(" ")[0] +
-            "." +
-            now.getMilliseconds().toString().padStart(3, "0"),
-          date: now.toISOString().split("T")[0],
-          frame: calculateFrame(playerStats.birthday),
-          type,
-          category,
-          message: msg,
-          icon: type === "SUCCESS" ? "✓" : "🌍",
-          fullDate: now,
-        };
-        setLogs((prev) => [...prev, log]);
-      }, delay);
-    });
-
-    setTimeout(() => {
-      setIsBooting(false);
-      setBuffs([
-        {
-          id: 1,
-          name: "Well Rested",
-          duration: "3:45:20",
-          effect: "+20% XP",
-          icon: "✨",
-        },
-        {
-          id: 2,
-          name: "Coffee Boost",
-          duration: "0:28:15",
-          effect: "+15 Mental/min",
-          icon: "☕",
-        },
-      ]);
-      setDebuffs([
-        {
-          id: 1,
-          name: "Sleep Debt",
-          duration: "∞",
-          effect: "-5% Max HP",
-          icon: "😴",
-        },
-      ]);
-    }, 2600);
-  }, [playerStats.birthday]);
+    // Set initial buffs/debuffs
+    setBuffs([
+      {
+        id: 1,
+        name: "Well Rested",
+        duration: "3:45:20",
+        effect: "+20% XP",
+        icon: "✨",
+      },
+      {
+        id: 2,
+        name: "Coffee Boost",
+        duration: "0:28:15",
+        effect: "+15 Mental/min",
+        icon: "☕",
+      },
+    ]);
+    setDebuffs([
+      {
+        id: 1,
+        name: "Sleep Debt",
+        duration: "∞",
+        effect: "-5% Max HP",
+        icon: "😴",
+      },
+    ]);
+  };
 
   // 自动生成日志
   useEffect(() => {
@@ -208,85 +170,97 @@ const App = () => {
     setPlayerStats((prev) => ({ ...prev, birthday: newBirthday }));
   };
 
+  if (!isAuthenticated) {
+    return <TerminalLogin onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 text-white p-6">
-      <HUDStats
-        playerStats={playerStats}
-        buffs={buffs}
-        debuffs={debuffs}
-        getPlayerAge={getPlayerAge}
-        getSecondsSinceBirth={getSecondsSinceBirth}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 text-white p-6 font-mono">
+      {isBooting && <BiosBoot onComplete={handleBootComplete} />}
 
-      <div className="max-w-7xl mx-auto mb-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowSystemLog(true)}
-            className="flex items-center gap-2 bg-cyan-900/50 hover:bg-cyan-800/50 border border-cyan-500/50 px-4 py-2 rounded-lg transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)] hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
-          >
-            <Book className="w-4 h-4 text-cyan-400" />
-            <span className="font-mono text-cyan-100 font-bold tracking-wider">
-              SYSTEM LOG
-            </span>
-          </button>
+      <div
+        className={`transition-opacity duration-1000 ${
+          isBooting ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <HUDStats
+          playerStats={playerStats}
+          buffs={buffs}
+          debuffs={debuffs}
+          getPlayerAge={getPlayerAge}
+          getSecondsSinceBirth={getSecondsSinceBirth}
+        />
 
-          <button
-            onClick={() => setShowLogForm(!showLogForm)}
-            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 px-4 py-2 rounded-lg transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Log Entry
-          </button>
+        <div className="max-w-7xl mx-auto mb-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowSystemLog(true)}
+              className="flex items-center gap-2 bg-cyan-900/50 hover:bg-cyan-800/50 border border-cyan-500/50 px-4 py-2 rounded-lg transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)] hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+            >
+              <Book className="w-4 h-4 text-cyan-400" />
+              <span className="font-mono text-cyan-100 font-bold tracking-wider">
+                SYSTEM LOG
+              </span>
+            </button>
 
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors"
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </button>
+            <button
+              onClick={() => setShowLogForm(!showLogForm)}
+              className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 px-4 py-2 rounded-lg transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add Log Entry
+            </button>
 
-          <div className="flex items-center gap-2 ml-auto">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={autoGenerate}
-                onChange={(e) => setAutoGenerate(e.target.checked)}
-                className="w-4 h-4"
-              />
-              Auto Generate Logs
-            </label>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Settings
+            </button>
+
+            <div className="flex items-center gap-2 ml-auto">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={autoGenerate}
+                  onChange={(e) => setAutoGenerate(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                Auto Generate Logs
+              </label>
+            </div>
           </div>
         </div>
+
+        {showSystemLog && (
+          <SystemLogModule onClose={() => setShowSystemLog(false)} />
+        )}
+
+        {showSettings && (
+          <SettingsPanel
+            playerStats={playerStats}
+            onUpdateBirthday={handleUpdateBirthday}
+            onClose={() => setShowSettings(false)}
+          />
+        )}
+
+        {showLogForm && (
+          <LogForm
+            onSubmit={handleAddLog}
+            onCancel={() => setShowLogForm(false)}
+          />
+        )}
+
+        <LogTimeline
+          logs={logs}
+          collapsedMonths={collapsedMonths}
+          collapsedYears={collapsedYears}
+          setCollapsedMonths={setCollapsedMonths}
+          setCollapsedYears={setCollapsedYears}
+          logsEndRef={logsEndRef}
+        />
       </div>
-
-      {showSystemLog && (
-        <SystemLogModule onClose={() => setShowSystemLog(false)} />
-      )}
-
-      {showSettings && (
-        <SettingsPanel
-          playerStats={playerStats}
-          onUpdateBirthday={handleUpdateBirthday}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
-
-      {showLogForm && (
-        <LogForm
-          onSubmit={handleAddLog}
-          onCancel={() => setShowLogForm(false)}
-        />
-      )}
-
-      <LogTimeline
-        logs={logs}
-        collapsedMonths={collapsedMonths}
-        collapsedYears={collapsedYears}
-        setCollapsedMonths={setCollapsedMonths}
-        setCollapsedYears={setCollapsedYears}
-        logsEndRef={logsEndRef}
-      />
     </div>
   );
 };
