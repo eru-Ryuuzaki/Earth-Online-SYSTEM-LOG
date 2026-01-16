@@ -46,7 +46,7 @@ export const useSystemLogs = () => {
         `${API_URL}/logs/commit`,
         {
           content,
-          status: "ACTIVE", // Default status for user logs
+          status: "STABLE", // Default status for user logs (must match backend enum)
           category: "USER_LOG",
           type: type || "NOTE", // The selected type (NOTE, TODO, etc.)
         },

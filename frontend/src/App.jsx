@@ -94,7 +94,10 @@ const App = () => {
 
         {/* Main Workspace: System Log Module */}
         <div className="flex-1 min-h-0 flex flex-col">
-          <SystemLogModule onToggleSettings={() => setShowSettings(true)} />
+          <SystemLogModule
+            onToggleSettings={() => setShowSettings(true)}
+            playerStats={playerStats}
+          />
         </div>
 
         {/* Settings Overlay */}
