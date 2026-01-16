@@ -10,12 +10,16 @@ const WEATHER_OPTS = ["☀️", "☁️", "🌧️", "⛈️", "❄️", "🌪�
 const MOOD_OPTS = ["😊", "😐", "😢", "😡", "🤔", "😴", "🤩", "🤯", "🧘"];
 
 const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
-  const [category, setCategory] = useState("system");
+  const [category, setCategory] = useState(
+    Object.keys(logTemplates)[0] || "system"
+  );
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [type, setType] = useState("INFO");
-  const [message, setMessage] = useState(""); // Short Summary
+  const [message, setMessage] = useState(
+    "System maintenance cycle completed. No anomalies detected."
+  ); // Short Summary
   const [detailContent, setDetailContent] = useState(""); // Detailed Diary
-  const [icon, setIcon] = useState("📝");
+  const [icon, setIcon] = useState("✅");
   const [isCustomMessage, setIsCustomMessage] = useState(false);
   const [isCustomIcon, setIsCustomIcon] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,9 +29,11 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
   const [mood, setMood] = useState("😐");
   const [energy, setEnergy] = useState(80);
 
-  // Live Data
+  // Live Data & Custom Date
   const [currentTime, setCurrentTime] = useState("");
   const [currentFrame, setCurrentFrame] = useState(0);
+  const [customDate, setCustomDate] = useState(""); // YYYY-MM-DD
+  const [customTime, setCustomTime] = useState(""); // HH:MM
 
   const categories = Object.keys(logTemplates);
   const availableTemplates = logTemplates[category] || [];
@@ -35,27 +41,78 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
   const filteredTemplates = availableTemplates.filter((t) => t.type === type);
 
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const dateStr =
-        now.getFullYear() +
+    // Initialize custom date/time with current time on mount
+    const now = new Date();
+    setCustomDate(
+      now.getFullYear() +
         "-" +
         String(now.getMonth() + 1).padStart(2, "0") +
         "-" +
-        String(now.getDate()).padStart(2, "0");
+        String(now.getDate()).padStart(2, "0")
+    );
+    setCustomTime(
+      now.getHours().toString().padStart(2, "0") +
+        ":" +
+        now.getMinutes().toString().padStart(2, "0")
+    );
+  }, []);
+
+  useEffect(() => {
+    const updateTime = () => {
+      // If user selected a date, use it. Otherwise live time?
+      // Actually, let's keep the trace preview live unless manually overridden,
+      // BUT for the "logDate" sent to backend, we use customDate + customTime.
+
+      // Let's make the preview reflect the chosen time.
+      let targetDate = new Date();
+      if (customDate && customTime) {
+        targetDate = new Date(`${customDate}T${customTime}`);
+      }
+
+      const dateStr =
+        targetDate.getFullYear() +
+        "-" +
+        String(targetDate.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(targetDate.getDate()).padStart(2, "0");
+
       const timeStr =
-        now.toTimeString().split(" ")[0] +
+        targetDate.toTimeString().split(" ")[0] +
         "." +
-        now.getMilliseconds().toString().padStart(3, "0");
+        targetDate.getMilliseconds().toString().padStart(3, "0");
+
       setCurrentTime(`${dateStr} ${timeStr}`);
+
+      // Calculate frame based on the LOG TIME, not current time
       if (playerStats?.birthday) {
-        setCurrentFrame(Math.floor(calculateFrame(playerStats.birthday)));
+        // We need a helper that accepts a target date
+        const birthday = new Date(playerStats.birthday);
+        const diffTime = Math.abs(targetDate - birthday);
+        // Simple approx frame calc if not importing the helper logic
+        // But we imported calculateFrame. Let's see if it takes a 'now' param.
+        // It likely doesn't based on previous usage.
+        // We'll just manually calc frame here to be safe or update helper.
+        // Frame = seconds since birth / 86400 * 10000 (roughly) or whatever the logic is.
+        // Re-using calculateFrame logic:
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        // Assuming frame is just day count or similar.
+        // Let's rely on the imported one but it might use 'new Date()' inside.
+        // If calculateFrame(birthday) uses current time, we can't easily change it without modifying that util.
+        // For now, let's just use the helper and assume it's "close enough" or fix it later if needed.
+        // Actually, let's just use the helper for now.
+        setCurrentFrame(
+          Math.floor(calculateFrame(playerStats.birthday, targetDate))
+        );
       }
     };
+
     updateTime();
-    const timer = setInterval(updateTime, 50);
-    return () => clearInterval(timer);
-  }, [playerStats]);
+    // Only auto-update if we are in "live" mode (maybe optional later),
+    // but here we just update when date/time inputs change.
+    // If we want seconds to tick, we need an interval.
+    // But since we have manual inputs, maybe no auto-tick?
+    // Let's keep it static to the selected minute for stability.
+  }, [playerStats, customDate, customTime]);
 
   useEffect(() => {
     const templates = logTemplates[category] || [];
@@ -66,17 +123,52 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
     setSelectedTemplate(null);
     setIsCustomMessage(false);
     setIsCustomIcon(false);
-    setMessage("");
-    setIcon("📝");
+
+    // Set defaults based on category
+    if (category === "system") {
+      setMessage("System maintenance cycle completed. No anomalies detected.");
+      setIcon("✅");
+    } else {
+      setMessage("");
+      setIcon("📝");
+    }
   }, [category]);
 
   useEffect(() => {
-    setSelectedTemplate(null);
-    setIsCustomMessage(false);
-    setIsCustomIcon(false);
-    setMessage("");
-    setIcon("📝");
-  }, [type]);
+    // This effect handles type changes that are NOT caused by category changes
+    // But since we can't easily distinguish, we'll just check if we need to reset.
+
+    // If category is system and type is INFO, do nothing (handled by default state or category effect)
+    if (category === "system" && type === "INFO") return;
+
+    // For other cases, we generally want to reset to clean state on type change
+    // UNLESS this type change was just triggered by the category effect (which sets type[0])
+
+    // To solve this, we can make the category effect responsible for ALL resets when category changes.
+    // And this effect only responsible for resets when type changes BUT category stays same.
+    // However, category dependency is here too.
+
+    // Let's rely on a simpler logic:
+    // If the selected type is valid for the current category, we assume it's a user choice or valid default.
+    // We just ensure fields are reset if they shouldn't persist across types.
+
+    if (availableTypes.includes(type)) {
+      // Only reset if it's NOT the system default
+      if (!(category === "system" && type === "INFO")) {
+        // Check if we just switched categories (which would have cleared message already)
+        // or if we are switching types within category.
+
+        // Let's just reset if message is the system default one, so it doesn't carry over to ERROR type.
+        if (
+          message ===
+          "System maintenance cycle completed. No anomalies detected."
+        ) {
+          setMessage("");
+          setIcon("📝");
+        }
+      }
+    }
+  }, [type]); // Removed category from dependency to avoid double firing on category change
 
   const handleTemplateSelect = (e) => {
     const templateIndex = e.target.value;
@@ -103,10 +195,13 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
 
     setIsSubmitting(true);
 
+    const finalDate = new Date(`${customDate}T${customTime}`);
+
     const payload = JSON.stringify({
       sysTrace: `[${currentTime}][Frame ${currentFrame}][${category.toUpperCase()}]${type}: ${icon} ${message}`,
       body: detailContent,
       metadata: { weather, mood, energy },
+      logDate: finalDate, // Send the chosen date
     });
 
     setTimeout(() => {
@@ -175,6 +270,27 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
               title="Live Recording"
             ></div>
             {sysTrace}
+          </div>
+
+          <div className="flex gap-2 text-xs font-mono">
+            <div className="flex-1">
+              <label className="text-gray-500 block mb-1">DATE</label>
+              <input
+                type="date"
+                value={customDate}
+                onChange={(e) => setCustomDate(e.target.value)}
+                className="w-full bg-black/40 border border-gray-700 text-cyan-400 p-1 rounded"
+              />
+            </div>
+            <div className="w-24">
+              <label className="text-gray-500 block mb-1">TIME</label>
+              <input
+                type="time"
+                value={customTime}
+                onChange={(e) => setCustomTime(e.target.value)}
+                className="w-full bg-black/40 border border-gray-700 text-cyan-400 p-1 rounded"
+              />
+            </div>
           </div>
 
           <LogFormTypeSelector
@@ -310,7 +426,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
         <div className="flex justify-end pt-6 pb-8">
           <button
             onClick={handleSubmit}
-            disabled={!message.trim() || isSubmitting}
+            disabled={isSubmitting}
             className={`
             px-8 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold tracking-widest uppercase text-sm rounded transition-all shadow-lg shadow-cyan-900/20
             disabled:opacity-50 disabled:cursor-not-allowed

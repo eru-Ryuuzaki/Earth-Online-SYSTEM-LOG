@@ -22,7 +22,7 @@ export class LogsService {
     "[SYSTEM]: Memory fragment secured.",
   ];
 
-  async create(userId: string, content: string, status: SystemStatus, category: string, type: string) {
+  async create(userId: string, content: string, status: SystemStatus, category: string, type: string, logDate?: Date) {
     // 1. Calculate Gamification Rewards
     let exp = 10; // Base EXP
     if (content && content.length > 50) exp += 20;
@@ -43,6 +43,7 @@ export class LogsService {
       type,
       systemFeedback: feedback,
       expGranted: exp,
+      logDate: logDate || new Date(),
     });
 
     return newLog.save();
@@ -50,7 +51,7 @@ export class LogsService {
 
   async findAll(userId: string, limit: number = 20, offset: number = 0) {
     const logs = await this.logModel.find({ userId })
-      .sort({ createdAt: -1 })
+      .sort({ logDate: -1, createdAt: -1 })
       .skip(offset)
       .limit(limit)
       .exec();
@@ -82,7 +83,7 @@ export class LogsService {
         { category: { $regex: query, $options: 'i' } },
         { type: { $regex: query, $options: 'i' } }
       ]
-    }).sort({ createdAt: -1 }).limit(50).exec();
+    }).sort({ logDate: -1, createdAt: -1 }).limit(50).exec();
 
     return logs.map(log => {
       const logObj = log.toObject();

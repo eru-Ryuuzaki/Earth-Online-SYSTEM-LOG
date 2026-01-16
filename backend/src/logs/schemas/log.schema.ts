@@ -38,6 +38,9 @@ export class SystemLog {
   // Gamification fields
   @Prop({ default: 0 })
   expGranted: number;
+
+  @Prop({ default: Date.now })
+  logDate: Date;
 }
 
 export const LogSchema = SchemaFactory.createForClass(SystemLog);

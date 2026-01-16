@@ -1,11 +1,12 @@
 import { logTemplates } from "../data/logTemplates";
 
 // 计算Frame数（基于出生日期）
-export const calculateFrame = (birthday) => {
-  const birthDate = new Date(birthday);
-  const now = new Date();
-  const secondsSinceBirth = Math.floor((now - birthDate) / 1000);
-  return secondsSinceBirth * 60; // 假设60 FPS
+export const calculateFrame = (birthday, targetDate = new Date()) => {
+  if (!birthday) return 0;
+  const birth = new Date(birthday);
+  const diffSeconds = Math.floor((targetDate - birth) / 1000);
+  // 假设人生是 60 FPS 的游戏
+  return Math.max(0, diffSeconds * 60);
 };
 
 // 生成随机日志

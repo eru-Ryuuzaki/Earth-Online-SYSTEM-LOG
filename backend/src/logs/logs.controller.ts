@@ -15,7 +15,8 @@ export class LogsController {
       body.content,
       body.status || SystemStatus.UNKNOWN,
       body.category || 'SYSTEM',
-      body.type || 'INFO'
+      body.type || 'INFO',
+      body.logDate // Optional: user provided date
     );
   }
 
