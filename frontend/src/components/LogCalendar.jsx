@@ -130,7 +130,7 @@ const LogCalendar = ({ logs = [] }) => {
     const days = [];
     // Empty cells for previous month
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-8 md:h-10" />);
+      days.push(<div key={`empty-${i}`} className="h-7 md:h-9" />);
     }
 
     // Days
@@ -144,7 +144,7 @@ const LogCalendar = ({ logs = [] }) => {
 
       let content = (
         <span
-          className={`text-[10px] md:text-xs font-mono ${
+          className={`text-[9px] md:text-[10px] font-mono ${
             isToday ? "text-cyan-400 font-bold" : "text-gray-500"
           }`}
         >
@@ -167,7 +167,7 @@ const LogCalendar = ({ logs = [] }) => {
               {d}
             </span>
 
-            <span className="text-sm md:text-base animate-in zoom-in-50 duration-300 drop-shadow-[0_0_3px_rgba(255,255,255,0.3)]">
+            <span className="text-xs md:text-sm animate-in zoom-in-50 duration-300 drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]">
               {activeLog.icon}
             </span>
 
@@ -221,7 +221,7 @@ const LogCalendar = ({ logs = [] }) => {
         <div
           key={d}
           className={`
-            h-8 md:h-10 border border-white/5 flex items-center justify-center relative transition-all duration-300
+            h-7 md:h-9 border border-white/5 flex items-center justify-center relative transition-all duration-300
             ${
               isToday
                 ? "bg-cyan-500/5 border-cyan-500/30 shadow-[inset_0_0_10px_rgba(6,182,212,0.1)]"

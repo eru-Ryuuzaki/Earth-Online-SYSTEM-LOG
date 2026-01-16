@@ -34,12 +34,12 @@ const App = () => {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const savedPlayer = JSON.parse(localStorage.getItem("player_info") || "{}");
-    
+
     if (token) {
       setIsAuthenticated(true);
       if (savedPlayer.username) setUsername(savedPlayer.username);
       if (savedPlayer.birthday) {
-         setPlayerStats(prev => ({ ...prev, birthday: savedPlayer.birthday }));
+        setPlayerStats((prev) => ({ ...prev, birthday: savedPlayer.birthday }));
       }
     }
   }, []);
@@ -88,12 +88,9 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 text-white p-6 font-mono overflow-hidden flex flex-col">
       {isAuthenticated && !isBooting && !playerStats.birthday && (
-        <BirthdayModal 
-          username={username} 
-          onComplete={handleUpdateBirthday} 
-        />
+        <BirthdayModal username={username} onComplete={handleUpdateBirthday} />
       )}
-      
+
       {isBooting && <BiosBoot onComplete={handleBootComplete} />}
 
       <div
@@ -102,7 +99,7 @@ const App = () => {
         }`}
       >
         {/* Top HUD */}
-        <div className="mb-8 shrink-0">
+        <div className="shrink-0">
           <HUDStats
             playerStats={playerStats}
             buffs={buffs}

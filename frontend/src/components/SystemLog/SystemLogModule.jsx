@@ -216,7 +216,7 @@ const SystemLogModule = ({ onToggleSettings, playerStats, onUpdateVitals }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full h-full md:h-[600px] bg-gray-950/95 border border-cyan-500/20 rounded-xl text-white overflow-hidden font-sans relative mb-0 md:mb-8 backdrop-blur-xl shadow-[0_0_40px_rgba(8,145,178,0.1)] flex flex-col">
+    <div className="max-w-7xl mx-auto w-full h-full md:h-[600px] bg-gray-950/95 border border-cyan-500/20 rounded-xl text-white overflow-hidden font-sans relative mb-0 md:mb-6 backdrop-blur-xl shadow-[0_0_40px_rgba(8,145,178,0.1)] flex flex-col">
       {/* Header */}
       <div className="h-14 border-b border-white/10 flex items-center justify-between px-4 md:px-6 bg-black/40 shrink-0">
         <div className="flex items-center gap-3">
