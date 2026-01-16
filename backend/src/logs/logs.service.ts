@@ -1,11 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SystemLog, LogDocument, SystemStatus } from './schemas/log.schema';
+import { EncryptionService } from '../common/encryption.service';
 
 @Injectable()
 export class LogsService {
-  constructor(@InjectModel(SystemLog.name) private logModel: Model<LogDocument>) {}
+  private readonly logger = new Logger(LogsService.name);
+
+  constructor(
+    @InjectModel(SystemLog.name) private logModel: Model<LogDocument>,
+    private encryptionService: EncryptionService
+  ) {}
 
   private SYSTEM_FEEDBACK_POOL = [
     "[SYSTEM]: Entry recorded. No improvement detected.",
@@ -26,9 +32,12 @@ export class LogsService {
     // 2. Select Feedback
     const feedback = this.SYSTEM_FEEDBACK_POOL[Math.floor(Math.random() * this.SYSTEM_FEEDBACK_POOL.length)];
 
+    // 3. Encrypt Content
+    const encryptedContent = this.encryptionService.encrypt(content);
+
     const newLog = new this.logModel({
       userId,
-      content,
+      content: encryptedContent,
       status,
       category,
       type,
@@ -40,11 +49,17 @@ export class LogsService {
   }
 
   async findAll(userId: string, limit: number = 20, offset: number = 0) {
-    return this.logModel.find({ userId })
+    const logs = await this.logModel.find({ userId })
       .sort({ createdAt: -1 })
       .skip(offset)
       .limit(limit)
       .exec();
+
+    return logs.map(log => {
+      const logObj = log.toObject();
+      logObj.content = this.encryptionService.decrypt(logObj.content);
+      return logObj;
+    });
   }
 
   async getStats(userId: string) {
@@ -55,13 +70,24 @@ export class LogsService {
   }
 
   async search(userId: string, query: string) {
-    return this.logModel.find({
+    // Note: Search on 'content' is limited due to encryption. 
+    // Regular regex search won't work on encrypted strings.
+    // We only search on metadata and feedback.
+    const logs = await this.logModel.find({
       userId,
       $or: [
-        { content: { $regex: query, $options: 'i' } },
+        // { content: { $regex: query, $options: 'i' } }, // Cannot regex search encrypted content
         { systemFeedback: { $regex: query, $options: 'i' } },
-        { status: { $regex: query, $options: 'i' } }
+        { status: { $regex: query, $options: 'i' } },
+        { category: { $regex: query, $options: 'i' } },
+        { type: { $regex: query, $options: 'i' } }
       ]
     }).sort({ createdAt: -1 }).limit(50).exec();
+
+    return logs.map(log => {
+      const logObj = log.toObject();
+      logObj.content = this.encryptionService.decrypt(logObj.content);
+      return logObj;
+    });
   }
 }
