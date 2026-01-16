@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api"; // Dev env
+const API_URL = API_BASE_URL;
 
 const TerminalLogin = ({ onLoginSuccess }) => {
   const [history, setHistory] = useState([]);

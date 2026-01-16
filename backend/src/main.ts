@@ -7,8 +7,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.enableCors(); // Enable CORS for frontend
   
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`System Online. Uplink established on port ${port}/api`);
+  await app.listen(3000);
+  console.log(`System Online. Uplink established on port 3000/api`);
 }
 bootstrap();
