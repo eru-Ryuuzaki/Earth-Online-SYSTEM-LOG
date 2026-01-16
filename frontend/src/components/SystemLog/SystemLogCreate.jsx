@@ -9,6 +9,71 @@ import LogFormIcon from "../LogFormIcon";
 const WEATHER_OPTS = ["☀️", "☁️", "🌧️", "⛈️", "❄️", "🌪️", "🌫️", "🌑"];
 const MOOD_OPTS = ["😊", "😐", "😢", "😡", "🤔", "😴", "🤩", "🤯", "🧘"];
 
+const getThemeClasses = (category) => {
+  switch (category) {
+    case "dream":
+      return {
+        text: "text-fuchsia-400",
+        textDim: "text-fuchsia-500/60",
+        border: "border-fuchsia-500/20",
+        borderStrong: "border-fuchsia-500/40",
+        ring: "ring-fuchsia-500",
+        bg: "bg-fuchsia-600",
+        bgHover: "hover:bg-fuchsia-500",
+        bgLow: "bg-fuchsia-500/20",
+        shadow: "shadow-fuchsia-900/20",
+        hoverBorder: "hover:border-fuchsia-500",
+        glow: "shadow-[0_0_20px_rgba(232,121,249,0.15)]",
+        title: "text-fuchsia-500",
+      };
+    case "challenge":
+      return {
+        text: "text-rose-400",
+        textDim: "text-rose-500/60",
+        border: "border-rose-500/20",
+        borderStrong: "border-rose-500/40",
+        ring: "ring-rose-500",
+        bg: "bg-rose-600",
+        bgHover: "hover:bg-rose-500",
+        bgLow: "bg-rose-500/20",
+        shadow: "shadow-rose-900/20",
+        hoverBorder: "hover:border-rose-500",
+        glow: "shadow-[0_0_20px_rgba(244,63,94,0.15)]",
+        title: "text-rose-500",
+      };
+    case "life_event":
+      return {
+        text: "text-yellow-400",
+        textDim: "text-yellow-500/60",
+        border: "border-yellow-500/20",
+        borderStrong: "border-yellow-500/40",
+        ring: "ring-yellow-500",
+        bg: "bg-yellow-600",
+        bgHover: "hover:bg-yellow-500",
+        bgLow: "bg-yellow-500/20",
+        shadow: "shadow-yellow-900/20",
+        hoverBorder: "hover:border-yellow-500",
+        glow: "shadow-[0_0_20px_rgba(234,179,8,0.15)]",
+        title: "text-yellow-500",
+      };
+    default:
+      return {
+        text: "text-cyan-400",
+        textDim: "text-cyan-500/60",
+        border: "border-cyan-500/20",
+        borderStrong: "border-cyan-500/40",
+        ring: "ring-cyan-500",
+        bg: "bg-cyan-600",
+        bgHover: "hover:bg-cyan-500",
+        bgLow: "bg-cyan-500/20",
+        shadow: "shadow-cyan-900/20",
+        hoverBorder: "hover:border-cyan-500",
+        glow: "shadow-[0_0_20px_rgba(6,182,212,0.15)]",
+        title: "text-cyan-500",
+      };
+  }
+};
+
 const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
   const [category, setCategory] = useState(
     Object.keys(logTemplates)[0] || "system"
@@ -125,13 +190,11 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
     setIsCustomIcon(false);
 
     // Set defaults based on category
-    if (category === "system") {
-      setMessage("System maintenance cycle completed. No anomalies detected.");
-      setIcon("✅");
-    } else {
-      setMessage("");
-      setIcon("📝");
-    }
+    // REMOVED: Auto-filling message for 'system' category.
+    // RATIONALE: User feedback indicates auto-filling content destroys intent.
+    // Instead, we clear the message to let the user choose explicitly.
+    setMessage("");
+    setIcon("📝");
   }, [category]);
 
   useEffect(() => {
@@ -231,17 +294,24 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
     "😡",
     "🤔",
     "💀",
+    "🦄",
+    "👹",
+    "🔮",
   ];
+
+  const theme = getThemeClasses(category);
 
   return (
     <div className="w-full h-full animate-in fade-in slide-in-from-right duration-300 p-6 overflow-y-auto custom-scrollbar">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 border-b border-cyan-500/20 pb-4 shrink-0">
+      <div
+        className={`flex items-center justify-between mb-6 border-b ${theme.border} pb-4 shrink-0`}
+      >
         <div>
-          <h2 className="text-lg font-bold text-cyan-500 tracking-wider">
+          <h2 className={`text-lg font-bold ${theme.title} tracking-wider`}>
             NEW SYSTEM LOG
           </h2>
-          <div className="flex gap-4 text-xs font-mono text-cyan-500/60 mt-1">
+          <div className={`flex gap-4 text-xs font-mono ${theme.textDim} mt-1`}>
             <span>Mode: RICH LOGGING</span>
           </div>
         </div>
@@ -256,15 +326,19 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
       <div className="space-y-8">
         {/* SECTION 1: KERNEL TRACE */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
-            <span className="text-cyan-400 font-bold text-xs">01</span>
+          <div
+            className={`flex items-center gap-2 mb-2 border-b ${theme.border} pb-2`}
+          >
+            <span className={`${theme.text} font-bold text-xs`}>01</span>
             <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
               KERNEL TRACE CONFIG
             </label>
           </div>
 
           {/* Live Preview */}
-          <div className="bg-black/60 border border-cyan-500/40 p-4 rounded font-mono text-[11px] md:text-xs text-cyan-300 break-all shadow-[0_0_20px_rgba(6,182,212,0.15)] relative group leading-relaxed">
+          <div
+            className={`bg-black/60 border ${theme.borderStrong} p-4 rounded font-mono text-[11px] md:text-xs ${theme.text} break-all ${theme.glow} relative group leading-relaxed`}
+          >
             <div
               className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
               title="Live Recording"
@@ -279,7 +353,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
                 type="date"
                 value={customDate}
                 onChange={(e) => setCustomDate(e.target.value)}
-                className="w-full bg-black/40 border border-gray-700 text-cyan-400 p-1 rounded"
+                className={`w-full bg-black/40 border border-gray-700 ${theme.text} p-1 rounded`}
               />
             </div>
             <div className="w-24">
@@ -288,7 +362,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
                 type="time"
                 value={customTime}
                 onChange={(e) => setCustomTime(e.target.value)}
-                className="w-full bg-black/40 border border-gray-700 text-cyan-400 p-1 rounded"
+                className={`w-full bg-black/40 border border-gray-700 ${theme.text} p-1 rounded`}
               />
             </div>
           </div>
@@ -300,6 +374,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
             availableTypes={availableTypes}
             type={type}
             setType={setType}
+            theme={theme}
           />
 
           <div className="grid grid-cols-[1fr_auto] gap-4">
@@ -311,13 +386,14 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
                 message={message}
                 setMessage={setMessage}
                 setIsCustomMessage={setIsCustomMessage}
+                theme={theme}
               />
             </div>
             <div className="w-16 pt-7">
               <div className="text-center text-xs text-gray-500 mb-1">Icon</div>
               <div className="flex justify-center">
                 <button
-                  className="w-10 h-10 text-xl bg-gray-800 border border-gray-700 rounded hover:border-cyan-500 transition-colors"
+                  className={`w-10 h-10 text-xl bg-gray-800 border border-gray-700 rounded ${theme.hoverBorder} transition-colors`}
                   onClick={() => setIsCustomIcon(!isCustomIcon)}
                 >
                   {icon}
@@ -332,14 +408,17 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
               setIcon={setIcon}
               setIsCustomIcon={setIsCustomIcon}
               commonIcons={commonIcons}
+              theme={theme}
             />
           )}
         </div>
 
         {/* SECTION 2: VITALS */}
         <div className="space-y-4 pt-4">
-          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
-            <span className="text-cyan-400 font-bold text-xs">02</span>
+          <div
+            className={`flex items-center gap-2 mb-2 border-b ${theme.border} pb-2`}
+          >
+            <span className={`${theme.text} font-bold text-xs`}>02</span>
             <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
               ENVIRONMENTAL VITALS
             </label>
@@ -357,7 +436,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
                     onClick={() => setWeather(w)}
                     className={`text-lg p-1 rounded hover:bg-white/10 ${
                       weather === w
-                        ? "bg-white/20 ring-1 ring-cyan-500"
+                        ? `bg-white/20 ring-1 ${theme.ring}`
                         : "opacity-50"
                     }`}
                   >
@@ -379,7 +458,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
                     onClick={() => setMood(m)}
                     className={`text-lg p-1 rounded hover:bg-white/10 ${
                       mood === m
-                        ? "bg-white/20 ring-1 ring-cyan-500"
+                        ? `bg-white/20 ring-1 ${theme.ring}`
                         : "opacity-50"
                     }`}
                   >
@@ -393,7 +472,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
             <div className="bg-black/20 p-3 rounded border border-white/5 col-span-2 md:col-span-1">
               <div className="text-[10px] text-gray-500 uppercase mb-2 flex justify-between">
                 <span>Energy Level</span>
-                <span className="text-cyan-400">{energy}%</span>
+                <span className={`${theme.text}`}>{energy}%</span>
               </div>
               <input
                 type="range"
@@ -401,7 +480,9 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
                 max="100"
                 value={energy}
                 onChange={(e) => setEnergy(e.target.value)}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                className={`w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-${
+                  theme.text.split("-")[1]
+                }-500`}
               />
             </div>
           </div>
@@ -409,8 +490,10 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
 
         {/* SECTION 3: DIARY */}
         <div className="space-y-4 pt-4">
-          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
-            <span className="text-cyan-400 font-bold text-xs">03</span>
+          <div
+            className={`flex items-center gap-2 mb-2 border-b ${theme.border} pb-2`}
+          >
+            <span className={`${theme.text} font-bold text-xs`}>03</span>
             <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
               DETAILED LOG (OPTIONAL)
             </label>
@@ -418,7 +501,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
           <textarea
             value={detailContent}
             onChange={(e) => setDetailContent(e.target.value)}
-            className="w-full h-48 bg-black/40 border border-white/10 rounded p-4 text-gray-200 font-mono placeholder-gray-600 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 outline-none transition-all resize-none text-sm leading-relaxed"
+            className={`w-full h-48 bg-black/40 border border-white/10 rounded p-4 text-gray-200 font-mono placeholder-gray-600 focus:${theme.borderStrong} focus:ring-1 focus:${theme.ring}/50 outline-none transition-all resize-none text-sm leading-relaxed`}
             placeholder="Record detailed observations, thoughts, or system anomalies..."
           />
         </div>
@@ -428,7 +511,11 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
             onClick={handleSubmit}
             disabled={isSubmitting}
             className={`
-            px-8 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold tracking-widest uppercase text-sm rounded transition-all shadow-lg shadow-cyan-900/20
+            px-8 py-3 ${theme.bg} ${
+              theme.bgHover
+            } text-white font-bold tracking-widest uppercase text-sm rounded transition-all shadow-lg ${
+              theme.shadow
+            }
             disabled:opacity-50 disabled:cursor-not-allowed
             ${isSubmitting ? "animate-pulse" : ""}
             `}

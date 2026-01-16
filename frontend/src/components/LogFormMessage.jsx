@@ -7,16 +7,17 @@ const LogFormMessage = ({
   message,
   setMessage,
   setIsCustomMessage,
+  theme,
 }) => {
   return (
     <div>
       <label className="block text-sm text-gray-400 mb-2">
         3️⃣ Message Template{" "}
-        <span className="text-cyan-400">(选择或自定义消息)</span>
+        <span className={`${theme.text}`}>(选择或自定义消息)</span>
       </label>
       <select
         onChange={handleTemplateSelect}
-        className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white hover:border-cyan-500 transition-colors mb-2"
+        className={`w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white ${theme.hoverBorder} transition-colors mb-2`}
         value={
           selectedTemplate
             ? filteredTemplates.indexOf(selectedTemplate)
@@ -39,7 +40,7 @@ const LogFormMessage = ({
           setIsCustomMessage(true);
         }}
         rows={3}
-        className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white resize-none hover:border-cyan-500 transition-colors"
+        className={`w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white resize-none ${theme.hoverBorder} transition-colors`}
         placeholder="Enter your log message or select from templates above..."
         required
       />
