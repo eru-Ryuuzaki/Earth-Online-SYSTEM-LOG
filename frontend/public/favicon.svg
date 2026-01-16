@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Background: Hexagon/Tech Shape -->
+  <path d="M50 5 L90 27 V73 L50 95 L10 73 V27 Z" fill="#09090b" stroke="#06b6d4" stroke-width="2"/>
+  
+  <!-- Inner Detail Lines -->
+  <path d="M50 5 V25 M90 27 L70 37 M90 73 L70 63 M50 95 V75 M10 73 L30 63 M10 27 L30 37" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.5"/>
+  
+  <!-- Central Core / Eye -->
+  <circle cx="50" cy="50" r="15" fill="#0e7490" stroke="#22d3ee" stroke-width="2">
+     <animate attributeName="fill" values="#0e7490;#155e75;#0e7490" duration="3s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Digital Glitch / Data Bits -->
+  <rect x="45" y="45" width="10" height="10" fill="#ffffff">
+      <animate attributeName="opacity" values="0;1;0" duration="1s" repeatCount="indefinite"/>
+  </rect>
+  
+  <!-- Rotating Ring -->
+  <circle cx="50" cy="50" r="28" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="10 5" stroke-opacity="0.8">
+    <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" duration="10s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Status Light -->
+  <circle cx="50" cy="15" r="3" fill="#4ade80">
+      <animate attributeName="opacity" values="1;0.2;1" duration="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>
