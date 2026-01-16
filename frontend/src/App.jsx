@@ -17,6 +17,7 @@ const App = () => {
     buffs,
     debuffs,
     handleBootComplete,
+    updateVitals,
   } = useGameEngine({
     hp: 85,
     maxHp: 100,
@@ -97,6 +98,7 @@ const App = () => {
           <SystemLogModule
             onToggleSettings={() => setShowSettings(true)}
             playerStats={playerStats}
+            onUpdateVitals={updateVitals}
           />
         </div>
 

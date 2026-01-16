@@ -49,6 +49,7 @@ export const useGameEngine = (initialStats) => {
     debuffs,
     setDebuffs,
     handleBootComplete,
-    addLog
+    addLog,
+    updateVitals: (stats) => setPlayerStats(prev => ({ ...prev, ...stats }))
   };
 };

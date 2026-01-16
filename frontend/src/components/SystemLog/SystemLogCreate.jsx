@@ -161,15 +161,15 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
       <div className="space-y-8">
         {/* SECTION 1: KERNEL TRACE */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/20 pb-2">
-            <span className="text-cyan-500 font-bold text-xs">01</span>
-            <label className="text-xs font-bold text-gray-500 tracking-widest uppercase">
+          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
+            <span className="text-cyan-400 font-bold text-xs">01</span>
+            <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
               KERNEL TRACE CONFIG
             </label>
           </div>
 
           {/* Live Preview */}
-          <div className="bg-black/60 border border-cyan-500/50 p-3 rounded font-mono text-[10px] text-cyan-300 break-all shadow-[0_0_15px_rgba(6,182,212,0.1)] relative group">
+          <div className="bg-black/60 border border-cyan-500/40 p-4 rounded font-mono text-[11px] md:text-xs text-cyan-300 break-all shadow-[0_0_20px_rgba(6,182,212,0.15)] relative group leading-relaxed">
             <div
               className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
               title="Live Recording"
@@ -222,16 +222,16 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
 
         {/* SECTION 2: VITALS */}
         <div className="space-y-4 pt-4">
-          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/20 pb-2">
-            <span className="text-cyan-500 font-bold text-xs">02</span>
-            <label className="text-xs font-bold text-gray-500 tracking-widest uppercase">
+          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
+            <span className="text-cyan-400 font-bold text-xs">02</span>
+            <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
               ENVIRONMENTAL VITALS
             </label>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {/* Weather */}
-            <div className="bg-black/20 p-3 rounded border border-white/5">
-              <div className="text-[10px] text-gray-500 uppercase mb-2">
+            <div className="bg-black/40 p-3 rounded border border-white/10">
+              <div className="text-[10px] text-gray-400 uppercase mb-2">
                 Weather Condition
               </div>
               <div className="flex flex-wrap gap-2">
@@ -293,16 +293,16 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
 
         {/* SECTION 3: DIARY */}
         <div className="space-y-4 pt-4">
-          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/20 pb-2">
-            <span className="text-cyan-500 font-bold text-xs">03</span>
-            <label className="text-xs font-bold text-gray-500 tracking-widest uppercase">
+          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
+            <span className="text-cyan-400 font-bold text-xs">03</span>
+            <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
               DETAILED LOG (OPTIONAL)
             </label>
           </div>
           <textarea
             value={detailContent}
             onChange={(e) => setDetailContent(e.target.value)}
-            className="w-full h-48 bg-black/40 border border-gray-800 rounded p-4 text-gray-300 font-mono placeholder-gray-700 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 outline-none transition-all resize-none text-sm leading-relaxed"
+            className="w-full h-48 bg-black/40 border border-white/10 rounded p-4 text-gray-200 font-mono placeholder-gray-600 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 outline-none transition-all resize-none text-sm leading-relaxed"
             placeholder="Record detailed observations, thoughts, or system anomalies..."
           />
         </div>

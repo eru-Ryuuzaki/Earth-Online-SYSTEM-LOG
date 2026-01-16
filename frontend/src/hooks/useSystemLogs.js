@@ -21,11 +21,27 @@ export const useSystemLogs = () => {
         params: { userId: user._id, limit: 100 },
         headers: { Authorization: `Bearer ${token}` },
       });
-      // 适配数据结构
-      const allLogs = res.data.logs || [];
-      // Filter to show only USER_LOG entries
-      const diaryLogs = allLogs.filter((log) => log.category === "USER_LOG");
-      setLogs(diaryLogs);
+      // 适配数据结构: API直接返回数组，或者是 { logs: [] }
+      let allLogs = [];
+
+      // 优先检查 res.data 是否直接为数组
+      if (Array.isArray(res.data)) {
+        allLogs = res.data;
+      }
+      // 检查 res.data.logs 是否为数组 (标准包装)
+      else if (res.data?.logs && Array.isArray(res.data.logs)) {
+        allLogs = res.data.logs;
+      }
+      // 检查 res.data.data 是否为数组 (常见包装)
+      else if (res.data?.data && Array.isArray(res.data.data)) {
+        allLogs = res.data.data;
+      }
+
+      console.log("[useSystemLogs] Parsed logs count:", allLogs.length);
+
+      // Show all logs to ensure user sees their submission
+      // const diaryLogs = allLogs.filter((log) => log.category === "USER_LOG");
+      setLogs(allLogs);
     } catch (err) {
       console.error("Failed to fetch system logs", err);
     }
