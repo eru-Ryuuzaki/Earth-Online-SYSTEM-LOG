@@ -17,4 +17,12 @@ export class PlayerController {
   ) {
     return this.playerService.syncStatus(username, action);
   }
+
+  @Patch(':username/profile')
+  async updateProfile(
+    @Param('username') username: string,
+    @Body() updates: any
+  ) {
+    return this.playerService.updateProfile(username, updates);
+  }
 }

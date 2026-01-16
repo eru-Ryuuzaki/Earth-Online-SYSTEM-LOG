@@ -23,11 +23,14 @@ export const useGameEngine = (initialStats) => {
 
   const addLog = (logData) => {
     const now = new Date();
+    // Use a default date for frame calculation if birthday is not set yet
+    const frame = playerStats.birthday ? calculateFrame(playerStats.birthday) : "UNKNOWN";
+    
     const newLog = {
       id: Date.now() + Math.random(),
       timestamp: now.toTimeString().split(" ")[0] + "." + now.getMilliseconds().toString().padStart(3, "0"),
       date: now.toISOString().split("T")[0],
-      frame: calculateFrame(playerStats.birthday),
+      frame: frame,
       type: logData.type,
       category: logData.category,
       message: logData.message,

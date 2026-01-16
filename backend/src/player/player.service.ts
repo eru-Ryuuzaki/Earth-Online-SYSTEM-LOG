@@ -47,4 +47,12 @@ export class PlayerService {
 
     return player.save();
   }
+
+  async updateProfile(username: string, updates: Partial<Player>) {
+    return this.playerModel.findOneAndUpdate(
+      { username },
+      { $set: updates },
+      { new: true }
+    ).exec();
+  }
 }

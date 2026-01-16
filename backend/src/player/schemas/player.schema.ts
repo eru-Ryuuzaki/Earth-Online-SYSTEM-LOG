@@ -36,6 +36,9 @@ export class Player {
   @Prop({ default: 0 })
   coins: number;
 
+  @Prop()
+  birthday: Date;
+
   @Prop([String])
   buffs: string[]; // Simplification: just store buff IDs or names
 }
