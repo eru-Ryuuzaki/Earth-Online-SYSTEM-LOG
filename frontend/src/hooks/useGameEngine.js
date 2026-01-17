@@ -26,10 +26,11 @@ export const useGameEngine = (initialStats) => {
     // Use a default date for frame calculation if birthday is not set yet
     const frame = playerStats.birthday ? calculateFrame(playerStats.birthday) : "UNKNOWN";
     
+    // Store in ISO (UTC) format for consistency
     const newLog = {
       id: Date.now() + Math.random(),
-      timestamp: now.toTimeString().split(" ")[0] + "." + now.getMilliseconds().toString().padStart(3, "0"),
-      date: now.toISOString().split("T")[0],
+      timestamp: now.toISOString(), // Changed to ISO
+      date: now.toISOString().split("T")[0], // Still keep YYYY-MM-DD for simple grouping if needed
       frame: frame,
       type: logData.type,
       category: logData.category,

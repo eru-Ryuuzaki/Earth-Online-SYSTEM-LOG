@@ -98,7 +98,16 @@ const LogCalendar = ({ logs = [] }) => {
       if (!dateStr) dateStr = log.createdAt;
 
       if (dateStr) {
-        const date = new Date(dateStr);
+        let date;
+        // Check if dateStr is strictly YYYY-MM-DD (from logDate input) to treat as local
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          const [y, m, d] = dateStr.split("-").map(Number);
+          date = new Date(y, m - 1, d);
+        } else {
+          // ISO string or other format, let Date parse it (usually handles UTC correctly)
+          date = new Date(dateStr);
+        }
+
         // Normalize to YYYY-MM-DD
         const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
         if (!map[key]) map[key] = [];

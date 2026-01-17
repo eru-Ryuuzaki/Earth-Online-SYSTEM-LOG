@@ -3,9 +3,13 @@ import { Heart, Brain, Activity, Cake, Clock } from "lucide-react";
 import LogCalendar from "./LogCalendar";
 import { useSystemLogs } from "../hooks/useSystemLogs";
 
-const HUDStats = ({ playerStats, buffs, debuffs }) => {
+const HUDStats = ({ playerStats, buffs, debuffs, refreshTrigger }) => {
   const [runtime, setRuntime] = useState({ s: 0, f: 0 });
-  const { logs } = useSystemLogs();
+  const { logs, refreshLogs } = useSystemLogs();
+
+  useEffect(() => {
+    refreshLogs();
+  }, [refreshTrigger]);
 
   useEffect(() => {
     const calculateRuntime = () => {
@@ -43,7 +47,7 @@ const HUDStats = ({ playerStats, buffs, debuffs }) => {
             <div className="flex items-center gap-2" title="Spawn Date">
               <Cake className="w-4 h-4 text-pink-400" />
               <span className="text-cyan-400 font-mono">
-                {playerStats.birthday}
+                {new Date(playerStats.birthday).toLocaleDateString()}
               </span>
             </div>
             <div className="w-px h-4 bg-white/10 hidden md:block"></div>

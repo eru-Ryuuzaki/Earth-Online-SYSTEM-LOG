@@ -11,7 +11,12 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-const SystemLogModule = ({ onToggleSettings, playerStats, onUpdateVitals }) => {
+const SystemLogModule = ({
+  onToggleSettings,
+  playerStats,
+  onUpdateVitals,
+  onLogAdded,
+}) => {
   const [isCreating, setIsCreating] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
   const { logs, addLog, refreshLogs, loading } = useSystemLogs();
@@ -20,6 +25,7 @@ const SystemLogModule = ({ onToggleSettings, playerStats, onUpdateVitals }) => {
     const success = await addLog(content, type);
     if (success) {
       setIsCreating(false);
+      if (onLogAdded) onLogAdded(); // Notify parent that a log was added
       try {
         const data = JSON.parse(content);
         if (data.metadata && onUpdateVitals) {

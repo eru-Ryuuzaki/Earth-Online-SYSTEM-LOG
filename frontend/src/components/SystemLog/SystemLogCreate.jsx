@@ -259,12 +259,21 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
     setIsSubmitting(true);
 
     const finalDate = new Date(`${customDate}T${customTime}`);
+    // finalDate here is constructed from local inputs, so it represents the correct local instant.
+    // When JSON.stringify handles a Date object, it converts to UTC ISO string automatically.
+    // e.g. "2023-10-27T10:30" (Local CN) -> "2023-10-27T02:30:00.000Z" (UTC)
+    // This is CORRECT for storage.
+
+    // We also want to store the "Local Date String" explicitly if we want to preserve the "Day" concept
+    // regardless of timezone shifts on viewing, OR we rely on the viewer to convert UTC back to their local time.
+    // The requirement says: "display format is local time... store converted to standard time... retrieve and convert back".
+    // So sending the Date object (which serializes to UTC) is the standard way.
 
     const payload = JSON.stringify({
       sysTrace: `[${currentTime}][Frame ${currentFrame}][${category.toUpperCase()}]${type}: ${icon} ${message}`,
       body: detailContent,
       metadata: { weather, mood, energy },
-      logDate: finalDate, // Send the chosen date
+      logDate: finalDate,
     });
 
     setTimeout(() => {

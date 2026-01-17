@@ -81,6 +81,12 @@ const App = () => {
     return Math.floor((now - birthday) / 1000);
   };
 
+  const [logsUpdated, setLogsUpdated] = useState(0); // Trigger for refreshing logs in HUD
+
+  const handleLogAdded = () => {
+    setLogsUpdated((prev) => prev + 1);
+  };
+
   if (!isAuthenticated) {
     return <TerminalLogin onLoginSuccess={handleLoginSuccess} />;
   }
@@ -106,6 +112,7 @@ const App = () => {
             debuffs={debuffs}
             getPlayerAge={getPlayerAge}
             getSecondsSinceBirth={getSecondsSinceBirth}
+            refreshTrigger={logsUpdated}
           />
         </div>
 
@@ -115,6 +122,7 @@ const App = () => {
             onToggleSettings={() => setShowSettings(true)}
             playerStats={playerStats}
             onUpdateVitals={updateVitals}
+            onLogAdded={handleLogAdded}
           />
         </div>
 

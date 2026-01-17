@@ -14,22 +14,31 @@ const BirthdayModal = ({ username, onComplete }) => {
     setLoading(true);
     setError("");
 
+    // Create a date object from the input string (YYYY-MM-DD)
+    // Interpret it as local time midnight
+    const [y, m, d] = date.split('-').map(Number);
+    const localDate = new Date(y, m - 1, d);
+    
+    // Convert to ISO string for storage (this will be UTC, e.g., previous day 16:00 for CN)
+    // Backend stores dates in UTC.
+    const isoDate = localDate.toISOString();
+
     try {
       const token = localStorage.getItem("access_token");
       const res = await axios.patch(
         `${API_BASE_URL}/player/${username}/profile`,
-        { birthday: date },
+        { birthday: isoDate }, // Send ISO UTC
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
       
-      // Update local storage if needed, but mainly notify parent
+      // Update local storage
       const playerInfo = JSON.parse(localStorage.getItem("player_info") || "{}");
-      playerInfo.birthday = date;
+      playerInfo.birthday = isoDate;
       localStorage.setItem("player_info", JSON.stringify(playerInfo));
 
-      onComplete(date);
+      onComplete(isoDate);
     } catch (err) {
       console.error(err);
       setError("Failed to initialize timeline. Server rejected value.");
