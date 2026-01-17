@@ -5,11 +5,15 @@ import { calculateFrame } from "../../utils/logGenerator";
 import LogFormTypeSelector from "../LogFormTypeSelector";
 import LogFormMessage from "../LogFormMessage";
 import LogFormIcon from "../LogFormIcon";
+import LogFormPreview from "../LogFormPreview";
+import LogFormVitals from "../LogFormVitals";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../../contexts/ToastContext";
-
-const WEATHER_OPTS = ["☀️", "☁️", "🌧️", "⛈️", "❄️", "🌪️", "🌫️", "🌑"];
-const MOOD_OPTS = ["😊", "😐", "😢", "😡", "🤔", "😴", "🤩", "🤯", "🧘"];
+import {
+  parseInitialContent,
+  getLocalYYYYMMDD,
+  parseLocalYMD,
+} from "../../utils/logFormUtils";
 
 const SystemLogCreate = ({
   onCancel,
@@ -25,63 +29,12 @@ const SystemLogCreate = ({
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [type, setType] = useState(initialData?.type || "INFO");
 
-  // Extract message from initialData content if needed
-  // initialData.content is likely the JSON string or object depending on how it's passed
-  // The list view parses it. Let's assume initialData is the PARSED object from the list.
-
-  const parseInitialContent = () => {
-    if (!initialData) return { msg: "", detail: "", icon: "✅" };
-    try {
-      const c =
-        typeof initialData.content === "string"
-          ? JSON.parse(initialData.content)
-          : initialData.content;
-      // Parse sysTrace to get message and icon?
-      // sysTrace format: `[Time][Frame][CAT]TYPE: ICON Message`
-      // It's hard to parse back perfectly.
-      // But we have `metadata` now!
-      // Wait, metadata might not be in old logs.
-
-      // Let's try to extract from sysTrace if possible
-      let msg = "";
-      let icon = "✅";
-      if (c.sysTrace) {
-        const parts = c.sysTrace.split(": ");
-        if (parts.length > 1) {
-          const contentPart = parts.slice(1).join(": "); // "ICON Message"
-          // Assume first char is icon (emoji)
-          // Simple split by space
-          const firstSpace = contentPart.indexOf(" ");
-          if (firstSpace > 0) {
-            icon = contentPart.substring(0, firstSpace);
-            msg = contentPart.substring(firstSpace + 1);
-          } else {
-            msg = contentPart;
-          }
-        }
-      }
-
-      return {
-        msg: msg,
-        detail: c.body || "",
-        icon: c.metadata?.icon || initialData.icon || icon, // Prefer metadata icon
-        weather: c.metadata?.weather || initialData.weather || "☀️",
-        mood: c.metadata?.mood || initialData.mood || "😐",
-        energy: c.metadata?.energy || initialData.energy || 80,
-        date: c.logDate || initialData.logDate,
-        time: c.logTime || "",
-      };
-    } catch (e) {
-      return { msg: "", detail: "", icon: "✅" };
-    }
-  };
-
-  const initialValues = parseInitialContent();
+  const initialValues = parseInitialContent(initialData);
 
   const [message, setMessage] = useState(initialValues.msg);
-  const [detailContent, setDetailContent] = useState(initialValues.detail); // Detailed Diary
+  const [detailContent, setDetailContent] = useState(initialValues.detail);
   const [icon, setIcon] = useState(initialValues.icon);
-  const [isCustomMessage, setIsCustomMessage] = useState(!!initialData); // If editing, assume custom to avoid overwriting
+  const [isCustomMessage, setIsCustomMessage] = useState(!!initialData);
   const [isCustomIcon, setIsCustomIcon] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -93,48 +46,13 @@ const SystemLogCreate = ({
   // Live Data & Custom Date
   const [currentTime, setCurrentTime] = useState("");
   const [currentFrame, setCurrentFrame] = useState(0);
-  const [customDate, setCustomDate] = useState(initialValues.date || ""); // YYYY-MM-DD
-  const [customTime, setCustomTime] = useState(initialValues.time || ""); // HH:MM
+  const [customDate, setCustomDate] = useState(initialValues.date || "");
+  const [customTime, setCustomTime] = useState(initialValues.time || "");
 
   const categories = Object.keys(logTemplates);
   const availableTemplates = logTemplates[category] || [];
   const availableTypes = [...new Set(availableTemplates.map((t) => t.type))];
   const filteredTemplates = availableTemplates.filter((t) => t.type === type);
-
-  // Date constraints
-  const getLocalYYYYMMDD = (dateInput) => {
-    if (!dateInput) return "";
-    // If it's already a YYYY-MM-DD string, return it to avoid timezone shifting
-    if (
-      typeof dateInput === "string" &&
-      /^\d{4}-\d{2}-\d{2}$/.test(dateInput)
-    ) {
-      return dateInput;
-    }
-    const date = new Date(dateInput);
-    if (isNaN(date.getTime())) return "";
-    // Use local time
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const todayStr = getLocalYYYYMMDD(new Date());
-  const birthdayStr = getLocalYYYYMMDD(playerStats?.birthday);
-
-  // Use strict parsing for YYYY-MM-DD to avoid UTC conversion shifts
-  const parseLocalYMD = (ymdStr) => {
-    if (!ymdStr) return null;
-    if (typeof ymdStr === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymdStr)) {
-      const [y, m, d] = ymdStr.split("-").map(Number);
-      return new Date(y, m - 1, d); // Local Midnight
-    }
-    // Fallback for Date objects or ISO strings
-    const d = new Date(ymdStr);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  };
 
   const handleDateChange = (e) => {
     const newDate = e.target.value;
@@ -142,7 +60,7 @@ const SystemLogCreate = ({
     if (newDate) {
       const selectedDate = parseLocalYMD(newDate);
       const todayDate = new Date();
-      todayDate.setHours(0, 0, 0, 0); // Local Midnight
+      todayDate.setHours(0, 0, 0, 0);
 
       if (selectedDate > todayDate) {
         addToast(t("logs.toasts.future_date"), "WARNING");
@@ -164,29 +82,26 @@ const SystemLogCreate = ({
   };
 
   useEffect(() => {
-    // Initialize custom date/time with current time on mount
-    const now = new Date();
-    setCustomDate(
-      now.getFullYear() +
-        "-" +
-        String(now.getMonth() + 1).padStart(2, "0") +
-        "-" +
-        String(now.getDate()).padStart(2, "0"),
-    );
-    setCustomTime(
-      now.getHours().toString().padStart(2, "0") +
-        ":" +
-        now.getMinutes().toString().padStart(2, "0"),
-    );
+    // Initialize custom date/time with current time on mount if not provided
+    if (!initialData) {
+      const now = new Date();
+      setCustomDate(
+        now.getFullYear() +
+          "-" +
+          String(now.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(now.getDate()).padStart(2, "0"),
+      );
+      setCustomTime(
+        now.getHours().toString().padStart(2, "0") +
+          ":" +
+          now.getMinutes().toString().padStart(2, "0"),
+      );
+    }
   }, []);
 
   useEffect(() => {
     const updateTime = () => {
-      // If user selected a date, use it. Otherwise live time?
-      // Actually, let's keep the trace preview live unless manually overridden,
-      // BUT for the "logDate" sent to backend, we use customDate + customTime.
-
-      // Let's make the preview reflect the chosen time.
       let targetDate = new Date();
       if (customDate && customTime) {
         targetDate = new Date(`${customDate}T${customTime}`);
@@ -206,23 +121,7 @@ const SystemLogCreate = ({
 
       setCurrentTime(`${dateStr} ${timeStr}`);
 
-      // Calculate frame based on the LOG TIME, not current time
       if (playerStats?.birthday) {
-        // We need a helper that accepts a target date
-        const birthday = new Date(playerStats.birthday);
-        const diffTime = Math.abs(targetDate - birthday);
-        // Simple approx frame calc if not importing the helper logic
-        // But we imported calculateFrame. Let's see if it takes a 'now' param.
-        // It likely doesn't based on previous usage.
-        // We'll just manually calc frame here to be safe or update helper.
-        // Frame = seconds since birth / 86400 * 10000 (roughly) or whatever the logic is.
-        // Re-using calculateFrame logic:
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        // Assuming frame is just day count or similar.
-        // Let's rely on the imported one but it might use 'new Date()' inside.
-        // If calculateFrame(birthday) uses current time, we can't easily change it without modifying that util.
-        // For now, let's just use the helper and assume it's "close enough" or fix it later if needed.
-        // Actually, let's just use the helper for now.
         setCurrentFrame(
           Math.floor(calculateFrame(playerStats.birthday, targetDate)),
         );
@@ -230,17 +129,11 @@ const SystemLogCreate = ({
     };
 
     updateTime();
-    // Only auto-update if we are in "live" mode (maybe optional later),
-    // but here we just update when date/time inputs change.
-    // If we want seconds to tick, we need an interval.
-    // But since we have manual inputs, maybe no auto-tick?
-    // Let's keep it static to the selected minute for stability.
   }, [playerStats, customDate, customTime]);
 
   const isFirstRender = React.useRef(true);
 
   useEffect(() => {
-    // Skip reset on mount if editing (initialData present)
     if (isFirstRender.current) {
       isFirstRender.current = false;
       if (initialData) return;
@@ -255,7 +148,6 @@ const SystemLogCreate = ({
     setIsCustomMessage(false);
     setIsCustomIcon(false);
 
-    // Set defaults based on category
     if (category === "system") {
       const defaultMsg = t("log_templates.system.INFO.check", {
         defaultValue:
@@ -267,33 +159,13 @@ const SystemLogCreate = ({
       setMessage("");
       setIcon("📝");
     }
-  }, [category, t, i18n.language, initialData]); // Added dependencies to auto-translate when language changes
+  }, [category, t, i18n.language, initialData]);
 
   useEffect(() => {
-    // This effect handles type changes that are NOT caused by category changes
-    // But since we can't easily distinguish, we'll just check if we need to reset.
-
-    // If category is system and type is INFO, do nothing (handled by default state or category effect)
     if (category === "system" && type === "INFO") return;
 
-    // For other cases, we generally want to reset to clean state on type change
-    // UNLESS this type change was just triggered by the category effect (which sets type[0])
-
-    // To solve this, we can make the category effect responsible for ALL resets when category changes.
-    // And this effect only responsible for resets when type changes BUT category stays same.
-    // However, category dependency is here too.
-
-    // Let's rely on a simpler logic:
-    // If the selected type is valid for the current category, we assume it's a user choice or valid default.
-    // We just ensure fields are reset if they shouldn't persist across types.
-
     if (availableTypes.includes(type)) {
-      // Only reset if it's NOT the system default
       if (!(category === "system" && type === "INFO")) {
-        // Check if we just switched categories (which would have cleared message already)
-        // or if we are switching types within category.
-
-        // Let's just reset if message is the system default one, so it doesn't carry over to ERROR type.
         if (
           message ===
           "System maintenance cycle completed. No anomalies detected."
@@ -303,7 +175,7 @@ const SystemLogCreate = ({
         }
       }
     }
-  }, [type]); // Removed category from dependency to avoid double firing on category change
+  }, [type]);
 
   const handleTemplateSelect = (e) => {
     const templateIndex = e.target.value;
@@ -314,7 +186,6 @@ const SystemLogCreate = ({
     } else {
       const template = filteredTemplates[parseInt(templateIndex)];
       setSelectedTemplate(template);
-      // Use raw English msg for input field to ensure consistent backend storage
       const translatedMsg = template.key
         ? t(`log_templates.${category}.${template.type}.${template.key}`, {
             defaultValue: template.msg,
@@ -329,20 +200,14 @@ const SystemLogCreate = ({
     }
   };
 
-  const sysTrace = `[${currentTime}][Frame ${currentFrame}][${category.toUpperCase()}]${type}: ${icon} ${
-    message || "..."
-  }`;
-
   const handleSubmit = () => {
     if (!message.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
 
-    // Ensure time is valid, default to 00:00 if empty
     const timeStr = customTime || "00:00";
     const finalDate = new Date(`${customDate}T${timeStr}`);
 
-    // Final sanity check for invalid date
     if (isNaN(finalDate.getTime())) {
       addToast(t("logs.toasts.invalid_date"), "ERROR");
       setIsSubmitting(false);
@@ -353,14 +218,12 @@ const SystemLogCreate = ({
       sysTrace: `[${currentTime}][Frame ${currentFrame}][${category.toUpperCase()}]${type}: ${icon} ${message}`,
       body: detailContent,
       metadata: { weather, mood, energy, icon },
-      // Store the raw date string to ensure calendar displays exactly what user picked (ignoring timezone shifts)
       logDate: customDate,
       logTime: timeStr,
       fullDate: finalDate,
     });
 
     setTimeout(() => {
-      // Pass category and metadata explicitly for backend indexing
       onSave(payload, type, finalDate, category, {
         weather,
         mood,
@@ -512,88 +375,25 @@ const SystemLogCreate = ({
             />
           )}
 
-          {/* Live Preview - Moved here */}
-          <div className="bg-black/60 border border-cyan-500/40 p-4 rounded font-mono text-[11px] md:text-xs text-cyan-300 break-all shadow-[0_0_20px_rgba(6,182,212,0.15)] relative group leading-relaxed">
-            <div
-              className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
-              title="Live Recording"
-            ></div>
-            [{currentTime}][Frame {currentFrame}][
-            {t(`categories.${category}`).toUpperCase()}]{t(`types.${type}`)}:{" "}
-            {icon} {message || "..."}
-          </div>
+          <LogFormPreview
+            currentTime={currentTime}
+            currentFrame={currentFrame}
+            category={category}
+            type={type}
+            icon={icon}
+            message={message}
+          />
         </div>
 
         {/* SECTION 2: VITALS */}
-        <div className="space-y-4 pt-4">
-          <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
-            <span className="text-cyan-400 font-bold text-xs">02</span>
-            <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
-              {t("logs.environmental_vitals")}
-            </label>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {/* Weather */}
-            <div className="bg-black/40 p-3 rounded border border-white/10">
-              <div className="text-[10px] text-gray-300 font-bold uppercase mb-2 tracking-wider">
-                {t("logs.weather")}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {WEATHER_OPTS.map((w) => (
-                  <button
-                    key={w}
-                    onClick={() => setWeather(w)}
-                    className={`text-lg p-1 rounded hover:bg-white/10 ${
-                      weather === w
-                        ? "bg-white/20 ring-1 ring-cyan-500"
-                        : "opacity-50"
-                    }`}
-                  >
-                    {w}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Mood */}
-            <div className="bg-black/20 p-3 rounded border border-white/5">
-              <div className="text-[10px] text-gray-300 font-bold uppercase mb-2 tracking-wider">
-                {t("logs.mood")}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {MOOD_OPTS.map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setMood(m)}
-                    className={`text-lg p-1 rounded hover:bg-white/10 ${
-                      mood === m
-                        ? "bg-white/20 ring-1 ring-cyan-500"
-                        : "opacity-50"
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Energy */}
-            <div className="bg-black/20 p-3 rounded border border-white/5 col-span-2 md:col-span-1">
-              <div className="text-[10px] text-gray-300 font-bold uppercase mb-2 flex justify-between tracking-wider">
-                <span>{t("logs.energy")}</span>
-                <span className="text-cyan-400">{energy}%</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={energy}
-                onChange={(e) => setEnergy(e.target.value)}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-              />
-            </div>
-          </div>
-        </div>
+        <LogFormVitals
+          weather={weather}
+          setWeather={setWeather}
+          mood={mood}
+          setMood={setMood}
+          energy={energy}
+          setEnergy={setEnergy}
+        />
 
         {/* SECTION 3: DIARY */}
         <div className="space-y-4 pt-4">
