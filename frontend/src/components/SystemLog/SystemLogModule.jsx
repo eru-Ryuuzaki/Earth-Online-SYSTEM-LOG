@@ -43,6 +43,22 @@ const SystemLogModule = ({
   // If selectedLog is provided via props, we don't need internal state for it.
   // The prop 'selectedLog' and 'setSelectedLog' are used throughout.
 
+  const getLogDate = (log) => {
+    try {
+      const content =
+        typeof log.content === "string" ? JSON.parse(log.content) : log.content;
+      if (content?.logDate) {
+        // If it's a YYYY-MM-DD string, construct local date to avoid timezone shift
+        if (/^\d{4}-\d{2}-\d{2}$/.test(content.logDate)) {
+          const [y, m, d] = content.logDate.split("-").map(Number);
+          return new Date(y, m - 1, d);
+        }
+        return content.logDate;
+      }
+    } catch (e) {}
+    return log.logDate || log.createdAt || log.timestamp;
+  };
+
   const getLogSummary = (content) => {
     try {
       if (!content) return <span className="text-gray-500">Empty Content</span>;

@@ -90,18 +90,21 @@ const LogCalendar = ({ logs = [], onLogClick }) => {
   const logsByDate = useMemo(() => {
     const map = {};
     logs.forEach((log) => {
-      // Prioritize logDate, fallback to createdAt
-      let dateStr = log.logDate;
-      if (!dateStr) {
-        // Check inside content.logDate if it exists (for backward compat if any)
-        try {
-          const c =
-            typeof log.content === "string"
-              ? JSON.parse(log.content)
-              : log.content;
-          if (c.logDate) dateStr = c.logDate;
-        } catch (e) {}
-      }
+      // 1. Try to extract user-selected date from content (payload)
+      // We prioritize the 'logDate' string in content which is YYYY-MM-DD
+      let dateStr;
+      try {
+        const c =
+          typeof log.content === "string"
+            ? JSON.parse(log.content)
+            : log.content;
+        if (c.logDate) dateStr = c.logDate;
+      } catch (e) {}
+
+      // 2. Fallback to top-level logDate (standard field)
+      if (!dateStr) dateStr = log.logDate;
+
+      // 3. Fallback to createdAt
       if (!dateStr) dateStr = log.createdAt;
 
       if (dateStr) {
@@ -113,79 +116,10 @@ const LogCalendar = ({ logs = [], onLogClick }) => {
         } else {
           // ISO string or other format, let Date parse it (usually handles UTC correctly)
           const parsed = new Date(dateStr);
-          // If it's a full ISO string (which logDate often is now, e.g. "2026-01-17T04:47:53.856Z")
-          // We should use the local date parts of that timestamp, not the UTC date parts converted to local.
-          // Or rather, we need to respect how the user "sees" the date.
-
-          // However, the issue described is "missing log".
-          // The user provided log has: "logDate": "2026-01-17T04:47:53.856Z"
-          // And "sysTrace": "[2026-01-16 12:03:44.635]..."
-
-          // Wait, the sysTrace says 2026-01-16, but logDate says 2026-01-17.
-          // If the user expects it on the 16th (based on trace), but we map by logDate (17th), it might be on the "wrong" day?
-          // BUT the user says "missing log", implying it's not showing up at all or showing as '0' (meaning extractIcon failed).
-          // "在日历上显示的 icon 不是⚙️ 而是 0" -> This means it IS showing up, but with '0' as the icon.
-
-          // If the icon is '0', it means extractIcon returned '0' or something falsy that rendered as 0?
-          // Or maybe the fallback logic is picking up a digit?
-
-          // Let's re-examine extractIcon fallback.
-          // msgPart = " ⚙️ Background processes..."
-          // firstChar = " " (space) -> Regex check !/^[a-zA-Z0-9\s]$/
-          // Space IS matched by \s, so it returns false.
-          // So it continues... and returns null?
-
-          // Wait, parts.slice(1).join(":").trim() removes leading space!
-          // So msgPart = "⚙️ Background processes..."
-          // firstChar = "⚙️"
-
-          // If extractIcon returns null, what happens?
-          // if (icon) { map[key].push(...) }
-          // So if icon is null, it's NOT added to the map.
-          // If it's not added, the day shows "0" (the date number)? No, the date number is rendered separately.
-          // Ah, "content" variable in renderDays is initialized to the date number.
-          // If dayLogs.length > 0, it is overwritten by the log icon.
-          // If the user says "displays 0", maybe they mean it displays the date number (e.g. 16 or 17) instead of the icon?
-          // OR, does it display the literal character "0"?
-
-          // If extractIcon returns a digit (e.g. "0"), then it would display "0".
-          // Why would it return a digit?
-          // trace: "[2026-01-16 12:03:44.635][Frame 49311085440][SYSTEM]INFO: ⚙️ Background..."
-          // split(":") ->
-          // [0]: "[2026-01-16 12"
-          // [1]: "03"
-          // [2]: "44.635][Frame 49311085440][SYSTEM]INFO"
-          // [3]: " ⚙️ Background..."
-
-          // parts.length is 4.
-          // parts.slice(1).join(":") -> "03:44.635][Frame 49311085440][SYSTEM]INFO: ⚙️ Background..."
-          // .trim() -> "03:44.635][Frame 49311085440][SYSTEM]INFO: ⚙️ Background..."
-          // firstChar = "0"
-          // "0" matches /^[a-zA-Z0-9\s]$/ (it is a number).
-          // So the fallback returns undefined/null (because if block is skipped).
-          // Wait, if fallback returns null, then extractIcon returns null.
-
-          // The issue is simply that `trace.split(":")` is naive because the timestamp contains colons!
-
-          // We need to split by the FIRST occurrence of ": " (colon space) or find the type separator more robustly.
-          // Or, better, use the known structure of the log.
-          // The standard format seems to be: ...[TYPE]: ICON ... or ...TYPE: ICON ...
-          // In the user example: ...[SYSTEM]INFO: ⚙️ ...
-
-          // We should look for the LAST colon before the message? Or the first colon after the brackets?
-          // Actually, the log format seems to be: `[Timestamp][Frame][Category]Type: Message`
-
-          // Correct approach: Find the index of "INFO:", "WARN:", "ERROR:", etc., or just the first ": " after the header.
-          // Since we can't be sure of the header format, maybe we should just look for the first emoji/icon in the whole string?
-          // But that might pick up stuff from the message body.
-
-          // Let's try to match the pattern `]: ` or `]TYPE: ` or just `: ` that separates metadata from content.
-          // The `sysTrace` usually ends the metadata block with `: `.
-
           date = parsed;
         }
 
-        // Normalize to YYYY-MM-DD
+        // Normalize to YYYY-MM-DD for Map Key
         const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
         if (!map[key]) map[key] = [];
 

@@ -6,12 +6,14 @@ import LogFormTypeSelector from "../LogFormTypeSelector";
 import LogFormMessage from "../LogFormMessage";
 import LogFormIcon from "../LogFormIcon";
 import { useTranslation } from "react-i18next";
+import { useToast } from "../../contexts/ToastContext";
 
 const WEATHER_OPTS = ["☀️", "☁️", "🌧️", "⛈️", "❄️", "🌪️", "🌫️", "🌑"];
 const MOOD_OPTS = ["😊", "😐", "😢", "😡", "🤔", "😴", "🤩", "🤯", "🧘"];
 
 const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
   const { t, i18n } = useTranslation();
+  const { addToast } = useToast();
   const [category, setCategory] = useState(
     Object.keys(logTemplates)[0] || "system",
   );
@@ -39,6 +41,68 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
   const availableTemplates = logTemplates[category] || [];
   const availableTypes = [...new Set(availableTemplates.map((t) => t.type))];
   const filteredTemplates = availableTemplates.filter((t) => t.type === type);
+
+  // Date constraints
+  const getLocalYYYYMMDD = (dateInput) => {
+    if (!dateInput) return "";
+    // If it's already a YYYY-MM-DD string, return it to avoid timezone shifting
+    if (
+      typeof dateInput === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(dateInput)
+    ) {
+      return dateInput;
+    }
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) return "";
+    // Use local time
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayStr = getLocalYYYYMMDD(new Date());
+  const birthdayStr = getLocalYYYYMMDD(playerStats?.birthday);
+
+  // Use strict parsing for YYYY-MM-DD to avoid UTC conversion shifts
+  const parseLocalYMD = (ymdStr) => {
+    if (!ymdStr) return null;
+    if (typeof ymdStr === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymdStr)) {
+      const [y, m, d] = ymdStr.split("-").map(Number);
+      return new Date(y, m - 1, d); // Local Midnight
+    }
+    // Fallback for Date objects or ISO strings
+    const d = new Date(ymdStr);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
+  const handleDateChange = (e) => {
+    const newDate = e.target.value;
+
+    if (newDate) {
+      const selectedDate = parseLocalYMD(newDate);
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0); // Local Midnight
+
+      if (selectedDate > todayDate) {
+        addToast(t("logs.toasts.future_date"), "WARNING");
+        return;
+      }
+
+      if (playerStats?.birthday) {
+        const normalizedBirthday = getLocalYYYYMMDD(playerStats.birthday);
+        const birthDate = parseLocalYMD(normalizedBirthday);
+
+        if (selectedDate < birthDate) {
+          addToast(t("logs.toasts.birth_date"), "WARNING");
+          return;
+        }
+      }
+    }
+
+    setCustomDate(newDate);
+  };
 
   useEffect(() => {
     // Initialize custom date/time with current time on mount
@@ -207,17 +271,29 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
 
     setIsSubmitting(true);
 
-    const finalDate = new Date(`${customDate}T${customTime}`);
+    // Ensure time is valid, default to 00:00 if empty
+    const timeStr = customTime || "00:00";
+    const finalDate = new Date(`${customDate}T${timeStr}`);
+
+    // Final sanity check for invalid date
+    if (isNaN(finalDate.getTime())) {
+      addToast(t("logs.toasts.invalid_date"), "ERROR");
+      setIsSubmitting(false);
+      return;
+    }
 
     const payload = JSON.stringify({
       sysTrace: `[${currentTime}][Frame ${currentFrame}][${category.toUpperCase()}]${type}: ${icon} ${message}`,
       body: detailContent,
       metadata: { weather, mood, energy },
-      logDate: finalDate, // Send the chosen date
+      // Store the raw date string to ensure calendar displays exactly what user picked (ignoring timezone shifts)
+      logDate: customDate,
+      logTime: timeStr,
+      fullDate: finalDate,
     });
 
     setTimeout(() => {
-      onSave(payload, type);
+      onSave(payload, type, finalDate);
       setIsSubmitting(false);
     }, 800);
   };
@@ -314,7 +390,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
               <input
                 type="date"
                 value={customDate}
-                onChange={(e) => setCustomDate(e.target.value)}
+                onChange={handleDateChange}
                 className="w-full bg-black/40 border border-gray-700 text-cyan-400 p-1 rounded"
               />
             </div>

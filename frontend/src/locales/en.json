@@ -46,6 +46,14 @@
     "detail_placeholder": "Record detailed observations, thoughts, or system anomalies...",
     "commit_log": "COMMIT LOG ENTRY",
     "uploading": "UPLOADING TRACE...",
+    "date_future_error": "Cannot select a future date.",
+    "date_birth_error": "Cannot select a date before birthday.",
+    "toasts": {
+      "invalid_date": "Invalid date/time selection detected.",
+      "future_date": "Temporal Paradox: Future date selection invalid.",
+      "birth_date": "Timeline Error: Date precedes user initialization (Spawn Date).",
+      "success_save": "Log entry successfully committed to core memory."
+    },
     "title": "SYSTEM LOGS",
     "live_feed": "LIVE FEED",
     "search_placeholder": "Search logs...",

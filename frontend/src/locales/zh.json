@@ -46,6 +46,14 @@
     "detail_placeholder": "记录详细观察、想法或系统异常...",
     "commit_log": "提交日志条目",
     "uploading": "正在上传追踪...",
+    "date_future_error": "无法选择未来日期。",
+    "date_birth_error": "无法选择早于生日的日期。",
+    "toasts": {
+      "invalid_date": "检测到无效的日期/时间选择。",
+      "future_date": "时间悖论：无法选择未来的时间节点。",
+      "birth_date": "时间线错误：日期早于用户初始化（出生日期）。",
+      "success_save": "日志条目已成功提交至核心存储。"
+    },
     "title": "系统日志",
     "live_feed": "实时数据",
     "search_placeholder": "搜索日志...",
