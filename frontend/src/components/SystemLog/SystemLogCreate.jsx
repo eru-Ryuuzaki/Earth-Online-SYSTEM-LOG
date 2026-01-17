@@ -5,19 +5,19 @@ import { calculateFrame } from "../../utils/logGenerator";
 import LogFormTypeSelector from "../LogFormTypeSelector";
 import LogFormMessage from "../LogFormMessage";
 import LogFormIcon from "../LogFormIcon";
+import { useTranslation } from "react-i18next";
 
 const WEATHER_OPTS = ["☀️", "☁️", "🌧️", "⛈️", "❄️", "🌪️", "🌫️", "🌑"];
 const MOOD_OPTS = ["😊", "😐", "😢", "😡", "🤔", "😴", "🤩", "🤯", "🧘"];
 
 const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
+  const { t, i18n } = useTranslation();
   const [category, setCategory] = useState(
-    Object.keys(logTemplates)[0] || "system"
+    Object.keys(logTemplates)[0] || "system",
   );
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [type, setType] = useState("INFO");
-  const [message, setMessage] = useState(
-    "System maintenance cycle completed. No anomalies detected."
-  ); // Short Summary
+  const [message, setMessage] = useState("");
   const [detailContent, setDetailContent] = useState(""); // Detailed Diary
   const [icon, setIcon] = useState("✅");
   const [isCustomMessage, setIsCustomMessage] = useState(false);
@@ -48,12 +48,12 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
         "-" +
         String(now.getMonth() + 1).padStart(2, "0") +
         "-" +
-        String(now.getDate()).padStart(2, "0")
+        String(now.getDate()).padStart(2, "0"),
     );
     setCustomTime(
       now.getHours().toString().padStart(2, "0") +
         ":" +
-        now.getMinutes().toString().padStart(2, "0")
+        now.getMinutes().toString().padStart(2, "0"),
     );
   }, []);
 
@@ -101,7 +101,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
         // For now, let's just use the helper and assume it's "close enough" or fix it later if needed.
         // Actually, let's just use the helper for now.
         setCurrentFrame(
-          Math.floor(calculateFrame(playerStats.birthday, targetDate))
+          Math.floor(calculateFrame(playerStats.birthday, targetDate)),
         );
       }
     };
@@ -126,13 +126,17 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
 
     // Set defaults based on category
     if (category === "system") {
-      setMessage("System maintenance cycle completed. No anomalies detected.");
+      const defaultMsg = t("log_templates.system.INFO.check", {
+        defaultValue:
+          "System maintenance cycle completed. No anomalies detected.",
+      });
+      setMessage(defaultMsg);
       setIcon("✅");
     } else {
       setMessage("");
       setIcon("📝");
     }
-  }, [category]);
+  }, [category, t, i18n.language]); // Added dependencies to auto-translate when language changes
 
   useEffect(() => {
     // This effect handles type changes that are NOT caused by category changes
@@ -179,7 +183,15 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
     } else {
       const template = filteredTemplates[parseInt(templateIndex)];
       setSelectedTemplate(template);
-      setMessage(template.msg);
+      // Use raw English msg for input field to ensure consistent backend storage
+      const translatedMsg = template.key
+        ? t(`log_templates.${category}.${template.type}.${template.key}`, {
+            defaultValue: template.msg,
+          })
+        : t(`log_templates.${category}.${template.type}`, {
+            defaultValue: template.msg,
+          });
+      setMessage(translatedMsg);
       setIcon(template.icon);
       setIsCustomMessage(false);
       setIsCustomIcon(false);
@@ -261,10 +273,10 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
       <div className="flex items-center justify-between mb-6 border-b border-cyan-500/20 pb-4 shrink-0">
         <div>
           <h2 className="text-lg font-bold text-cyan-500 tracking-wider">
-            NEW SYSTEM LOG
+            {t("logs.new_log")}
           </h2>
           <div className="flex gap-4 text-xs font-mono text-cyan-500/60 mt-1">
-            <span>Mode: RICH LOGGING</span>
+            <span>{t("logs.mode")}</span>
           </div>
         </div>
         <button
@@ -281,7 +293,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
           <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
             <span className="text-cyan-400 font-bold text-xs">01</span>
             <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
-              KERNEL TRACE CONFIG
+              {t("logs.kernel_trace")}
             </label>
           </div>
 
@@ -291,7 +303,9 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
               className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
               title="Live Recording"
             ></div>
-            {sysTrace}
+            [{currentTime}][Frame {currentFrame}][
+            {t(`categories.${category}`).toUpperCase()}]{t(`types.${type}`)}:{" "}
+            {icon} {message || "..."}
           </div>
 
           <div className="flex gap-2 text-xs font-mono">
@@ -333,6 +347,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
                 message={message}
                 setMessage={setMessage}
                 setIsCustomMessage={setIsCustomMessage}
+                category={category}
               />
             </div>
             <div className="w-16 pt-7">
@@ -363,14 +378,14 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
           <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
             <span className="text-cyan-400 font-bold text-xs">02</span>
             <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
-              ENVIRONMENTAL VITALS
+              {t("logs.environmental_vitals")}
             </label>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {/* Weather */}
             <div className="bg-black/40 p-3 rounded border border-white/10">
-              <div className="text-[10px] text-gray-400 uppercase mb-2">
-                Weather Condition
+              <div className="text-[10px] text-gray-300 font-bold uppercase mb-2 tracking-wider">
+                {t("logs.weather")}
               </div>
               <div className="flex flex-wrap gap-2">
                 {WEATHER_OPTS.map((w) => (
@@ -391,8 +406,8 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
 
             {/* Mood */}
             <div className="bg-black/20 p-3 rounded border border-white/5">
-              <div className="text-[10px] text-gray-500 uppercase mb-2">
-                Operator Mood
+              <div className="text-[10px] text-gray-300 font-bold uppercase mb-2 tracking-wider">
+                {t("logs.mood")}
               </div>
               <div className="flex flex-wrap gap-2">
                 {MOOD_OPTS.map((m) => (
@@ -413,8 +428,8 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
 
             {/* Energy */}
             <div className="bg-black/20 p-3 rounded border border-white/5 col-span-2 md:col-span-1">
-              <div className="text-[10px] text-gray-500 uppercase mb-2 flex justify-between">
-                <span>Energy Level</span>
+              <div className="text-[10px] text-gray-300 font-bold uppercase mb-2 flex justify-between tracking-wider">
+                <span>{t("logs.energy")}</span>
                 <span className="text-cyan-400">{energy}%</span>
               </div>
               <input
@@ -434,14 +449,14 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
           <div className="flex items-center gap-2 mb-2 border-b border-cyan-500/30 pb-2">
             <span className="text-cyan-400 font-bold text-xs">03</span>
             <label className="text-xs font-bold text-gray-400 tracking-widest uppercase">
-              DETAILED LOG (OPTIONAL)
+              {t("logs.detailed_log")}
             </label>
           </div>
           <textarea
             value={detailContent}
             onChange={(e) => setDetailContent(e.target.value)}
             className="w-full h-48 bg-black/40 border border-white/10 rounded p-4 text-gray-200 font-mono placeholder-gray-600 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 outline-none transition-all resize-none text-sm leading-relaxed"
-            placeholder="Record detailed observations, thoughts, or system anomalies..."
+            placeholder={t("logs.detail_placeholder")}
           />
         </div>
 
@@ -455,7 +470,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
             ${isSubmitting ? "animate-pulse" : ""}
             `}
           >
-            {isSubmitting ? "UPLOADING TRACE..." : "COMMIT LOG ENTRY"}
+            {isSubmitting ? t("logs.uploading") : t("logs.commit_log")}
           </button>
         </div>
       </div>

@@ -10,6 +10,7 @@ import {
   Settings,
   ArrowLeft,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const SystemLogModule = ({
   onToggleSettings,
@@ -19,6 +20,7 @@ const SystemLogModule = ({
   selectedLog,
   onSelectLog: setSelectedLog,
 }) => {
+  const { t } = useTranslation();
   const [isCreating, setIsCreating] = useState(false);
   const { logs, addLog, refreshLogs, loading } = useSystemLogs();
 
@@ -162,7 +164,7 @@ const SystemLogModule = ({
                 className="flex items-center gap-2 text-sm text-gray-200"
                 title="Weather"
               >
-                <span className="text-gray-400 uppercase font-bold text-xs tracking-wider">
+                <span className="text-gray-300 uppercase font-bold text-xs tracking-wider">
                   Weather:
                 </span>
                 <span className="text-xl">{data.metadata.weather}</span>
@@ -173,7 +175,7 @@ const SystemLogModule = ({
                 className="flex items-center gap-2 text-sm text-gray-200"
                 title="Mood"
               >
-                <span className="text-gray-400 uppercase font-bold text-xs tracking-wider">
+                <span className="text-gray-300 uppercase font-bold text-xs tracking-wider">
                   Mood:
                 </span>
                 <span className="text-xl">{data.metadata.mood}</span>
@@ -181,7 +183,7 @@ const SystemLogModule = ({
             )}
             {data.metadata.energy !== undefined && (
               <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                <span className="text-[10px] text-gray-300 font-bold uppercase tracking-wider">
                   Energy
                 </span>
                 <div className="w-32 h-2 bg-gray-800 rounded-full overflow-hidden flex-shrink-0 border border-gray-700">
@@ -256,9 +258,9 @@ const SystemLogModule = ({
             <h2 className="text-sm font-bold text-white tracking-wide shadow-black drop-shadow-md">
               {selectedLog || isCreating
                 ? isCreating
-                  ? "NEW ENTRY"
+                  ? t("logs.new_log")
                   : "LOG DETAILS"
-                : "SYSTEM LOG"}
+                : t("logs.title")}
             </h2>
             <div className="text-[10px] text-cyan-400/80 font-mono hidden md:block">
               EARTH ONLINE V2.0
@@ -314,7 +316,7 @@ const SystemLogModule = ({
               <Terminal className="w-8 h-8 text-cyan-400" />
               <div className="text-center">
                 <div className="text-sm text-gray-200 font-bold">
-                  No logs found.
+                  {t("logs.no_logs")}
                 </div>
                 <div className="text-xs text-gray-400 mt-2">
                   Initialize your first entry to begin tracking.
@@ -338,12 +340,12 @@ const SystemLogModule = ({
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-[10px] font-mono text-gray-500 group-hover:text-cyan-400 transition-colors">
                     {new Date(
-                      log.createdAt || log.timestamp
+                      log.createdAt || log.timestamp,
                     ).toLocaleDateString()}
                   </span>
                   <span
                     className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${getTypeColor(
-                      log.type
+                      log.type,
                     )}`}
                   >
                     {log.type}

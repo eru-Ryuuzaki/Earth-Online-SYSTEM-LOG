@@ -14,6 +14,7 @@ import {
 import LogCalendar from "./LogCalendar";
 import WaveProgress from "./WaveProgress";
 import { useSystemLogs } from "../hooks/useSystemLogs";
+import { useTranslation } from "react-i18next";
 
 const HUDStats = ({
   playerStats,
@@ -21,6 +22,7 @@ const HUDStats = ({
   getPlayerAge,
   onLogClick,
 }) => {
+  const { t } = useTranslation();
   const [runtime, setRuntime] = useState({ s: 0, f: 0 });
   const { logs, refreshLogs } = useSystemLogs();
 
@@ -105,7 +107,7 @@ const HUDStats = ({
     const nextBirthday = new Date(
       now.getFullYear(),
       birthDate.getMonth(),
-      birthDate.getDate()
+      birthDate.getDate(),
     );
     if (nextBirthday < now) {
       nextBirthday.setFullYear(now.getFullYear() + 1);
@@ -115,7 +117,7 @@ const HUDStats = ({
     const lastBirthday = new Date(
       nextBirthday.getFullYear() - 1,
       birthDate.getMonth(),
-      birthDate.getDate()
+      birthDate.getDate(),
     );
 
     const totalDuration = nextBirthday - lastBirthday;
@@ -134,7 +136,10 @@ const HUDStats = ({
         {/* Top Bar: Identity & Runtime */}
         <div className="mb-4 pb-3 border-b border-cyan-500/20 flex flex-col md:flex-row md:items-center justify-between gap-2">
           <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2" title="Spawn Date">
+            <div
+              className="flex items-center gap-2"
+              title={t("hud.spawn_date")}
+            >
               <Cake className="w-4 h-4 text-pink-400" />
               <span className="text-cyan-400 font-mono">
                 {new Date(playerStats.birthday).toLocaleDateString()}
@@ -142,7 +147,7 @@ const HUDStats = ({
             </div>
             <div className="w-px h-4 bg-white/10 hidden md:block"></div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-400">User:</span>
+              <span className="text-gray-400">{t("hud.user")}:</span>
               <span className="text-purple-400 font-bold uppercase tracking-wider">
                 {playerStats.username || "UNKNOWN"}
               </span>
@@ -151,7 +156,7 @@ const HUDStats = ({
 
           <div className="flex items-center gap-2 text-sm font-mono bg-black/30 px-3 py-1 rounded border border-white/5">
             <Clock className="w-3.5 h-3.5 text-green-400" />
-            <span className="text-gray-400">RUNTIME:</span>
+            <span className="text-gray-400">{t("hud.runtime")}:</span>
             <span className="text-green-400">
               {runtime.s.toLocaleString()}s
             </span>
@@ -172,11 +177,11 @@ const HUDStats = ({
                   <div className="flex items-center gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5 text-yellow-400" />
                     <span className="text-[10px] font-bold text-gray-300">
-                      LEVEL {getPlayerAge()}
+                      {t("hud.level")} {getPlayerAge()}
                     </span>
                   </div>
                   <span className="text-[10px] text-gray-400 font-mono">
-                    {ageProgress.toFixed(4)}% EXP
+                    {ageProgress.toFixed(4)}% {t("hud.exp")}
                   </span>
                 </div>
                 <div className="h-2 bg-gray-800 rounded-full overflow-hidden border border-yellow-900/30 relative group">
@@ -188,23 +193,23 @@ const HUDStats = ({
                   </div>
                 </div>
                 <div className="text-[9px] text-gray-500 mt-1 font-mono text-right">
-                  Next Level:{" "}
+                  {t("hud.next_level")}:{" "}
                   {new Date().getFullYear() +
                     (new Date(
                       new Date().getFullYear(),
                       new Date(playerStats.birthday).getMonth(),
-                      new Date(playerStats.birthday).getDate()
+                      new Date(playerStats.birthday).getDate(),
                     ) < new Date()
                       ? 1
                       : 0)}
                   -
                   {String(
-                    new Date(playerStats.birthday).getMonth() + 1
+                    new Date(playerStats.birthday).getMonth() + 1,
                   ).padStart(2, "0")}
                   -
                   {String(new Date(playerStats.birthday).getDate()).padStart(
                     2,
-                    "0"
+                    "0",
                   )}
                 </div>
               </div>
@@ -213,33 +218,33 @@ const HUDStats = ({
             {/* TEMPORAL METRICS (Wave Countdown) */}
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 gap-3">
               <WaveProgress
-                label="Week Remaining"
+                label={t("hud.week_remaining")}
                 value={remaining.week}
-                unit="Days"
+                unit={t("hud.days")}
                 percentage={remaining.weekPct}
                 color="cyan"
                 delay={0}
               />
               <WaveProgress
-                label="Month Remaining"
+                label={t("hud.month_remaining")}
                 value={remaining.month}
-                unit="Days"
+                unit={t("hud.days")}
                 percentage={remaining.monthPct}
                 color="blue"
                 delay={0.5}
               />
               <WaveProgress
-                label="Year Remaining"
+                label={t("hud.year_remaining")}
                 value={remaining.year}
-                unit="Days"
+                unit={t("hud.days")}
                 percentage={remaining.yearPct}
                 color="purple"
                 delay={1}
               />
               <WaveProgress
-                label="Year Weeks"
+                label={t("hud.year_weeks")}
                 value={remaining.yearWeeks}
-                unit="Weeks"
+                unit={t("hud.weeks")}
                 percentage={remaining.yearWeeksPct}
                 color="green"
                 delay={1.5}
@@ -252,7 +257,7 @@ const HUDStats = ({
                 <div className="flex justify-between items-center mb-1 relative z-10">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
                     <Clock className="w-3 h-3 text-red-500" />
-                    SESSION_LENGTH
+                    {t("hud.session_length")}
                   </span>
                   <span className="text-[10px] font-mono text-gray-300">
                     {lifeProgress.toFixed(1)}% / {playerStats.expectedLifespan}Y

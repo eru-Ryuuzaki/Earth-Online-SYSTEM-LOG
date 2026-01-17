@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const LogFormMessage = ({
   filteredTemplates,
@@ -7,12 +8,15 @@ const LogFormMessage = ({
   message,
   setMessage,
   setIsCustomMessage,
+  category,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div>
-      <label className="block text-sm text-gray-400 mb-2">
+      <label className="block text-sm font-bold text-gray-300 mb-2 tracking-wide">
         3️⃣ Message Template{" "}
-        <span className="text-cyan-400">(选择或自定义消息)</span>
+        <span className="text-cyan-400 text-xs font-normal opacity-80">(选择或自定义消息)</span>
       </label>
       <select
         onChange={handleTemplateSelect}
@@ -26,7 +30,14 @@ const LogFormMessage = ({
         <option value="custom">✍️ Custom Message (自定义消息)</option>
         {filteredTemplates.map((template, index) => (
           <option key={index} value={index}>
-            {template.icon} {template.msg}
+            {template.icon}{" "}
+            {template.key
+              ? t(`log_templates.${category}.${template.type}.${template.key}`, {
+                  defaultValue: template.msg,
+                })
+              : t(`log_templates.${category}.${template.type}`, {
+                  defaultValue: template.msg,
+                })}
           </option>
         ))}
       </select>

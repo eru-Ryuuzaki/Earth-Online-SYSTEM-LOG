@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { X, Save, LogOut } from "lucide-react";
+import { X, Save, LogOut, Globe } from "lucide-react";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 import ProfileForm from "./ProfileForm";
+import { useTranslation } from "react-i18next";
 
 const SettingsPanel = ({
   playerStats,
@@ -10,6 +11,7 @@ const SettingsPanel = ({
   onClose,
   onLogout,
 }) => {
+  const { t, i18n } = useTranslation();
   const [birthday, setBirthday] = useState(playerStats.birthday || "");
   const [lifespan, setLifespan] = useState(
     playerStats.expectedLifespan !== null &&
@@ -18,6 +20,10 @@ const SettingsPanel = ({
       : ""
   );
   const [error, setError] = useState("");
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
 
   const handleSave = async () => {
     setError("");
@@ -35,19 +41,6 @@ const SettingsPanel = ({
 
     try {
       const token = localStorage.getItem("access_token");
-      // Use playerStats.username directly or fetch it if needed
-      // Assuming username is not passed here but we can rely on parent's callback to handle API
-      // OR we should call API here.
-      // Looking at BirthdayModal, it calls API directly.
-      // Looking at App.jsx, handleUpdateBirthday just updates state.
-      // THIS IS THE ISSUE: SettingsPanel calls onUpdateBirthday which only updates local state.
-      // It does NOT call the backend.
-      // BirthdayModal DOES call the backend.
-
-      // We need to call the API here to persist changes.
-      // However, SettingsPanel doesn't have the username prop.
-      // We should check if we can get it from playerStats (not there) or localStorage.
-
       const storedPlayer = JSON.parse(
         localStorage.getItem("player_info") || "{}"
       );
@@ -84,7 +77,7 @@ const SettingsPanel = ({
       <div className="w-full max-w-lg bg-gray-950 border border-cyan-500/30 rounded-xl shadow-[0_0_40px_rgba(8,145,178,0.2)] p-6 relative animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between mb-6 border-b border-cyan-900/30 pb-4">
           <h3 className="text-xl font-bold text-cyan-400 tracking-wide">
-            SYSTEM SETTINGS
+            {t("settings.title")}
           </h3>
           <button
             onClick={onClose}
@@ -92,6 +85,36 @@ const SettingsPanel = ({
           >
             <X className="w-6 h-6" />
           </button>
+        </div>
+
+        {/* Language Switcher */}
+        <div className="mb-6">
+          <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider font-mono flex items-center gap-2">
+            <Globe className="w-3 h-3" />
+            {t("settings.language")}
+          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => changeLanguage("en")}
+              className={`flex-1 py-2 rounded border font-mono text-sm transition-all ${
+                i18n.language === "en"
+                  ? "bg-cyan-900/40 border-cyan-500 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                  : "bg-black border-gray-800 text-gray-500 hover:border-gray-600"
+              }`}
+            >
+              English
+            </button>
+            <button
+              onClick={() => changeLanguage("zh")}
+              className={`flex-1 py-2 rounded border font-mono text-sm transition-all ${
+                i18n.language === "zh"
+                  ? "bg-cyan-900/40 border-cyan-500 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                  : "bg-black border-gray-800 text-gray-500 hover:border-gray-600"
+              }`}
+            >
+              中文 (Chinese)
+            </button>
+          </div>
         </div>
 
         <ProfileForm
@@ -108,13 +131,13 @@ const SettingsPanel = ({
             className="flex-1 flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-lg hover:shadow-cyan-500/20"
           >
             <Save className="w-4 h-4" />
-            SAVE CONFIG
+            {t("settings.save_config")}
           </button>
           <button
             onClick={onClose}
             className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-6 py-3 rounded-lg transition-colors"
           >
-            CANCEL
+            {t("settings.cancel")}
           </button>
         </div>
 
@@ -122,14 +145,12 @@ const SettingsPanel = ({
         <div className="mt-6 pt-4 border-t border-red-900/20">
           <button
             onClick={() => {
-              if (window.confirm("Are you sure you want to disconnect?")) {
-                onLogout();
-              }
+              onLogout();
             }}
             className="w-full flex items-center justify-center gap-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 py-2 rounded transition-colors text-xs tracking-widest font-bold"
           >
             <LogOut className="w-3 h-3" />
-            DISCONNECT SESSION
+            {t("settings.disconnect_session")}
           </button>
         </div>
       </div>

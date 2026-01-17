@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const WaveProgress = ({
   label,
@@ -8,6 +9,7 @@ const WaveProgress = ({
   color = "cyan",
   delay = 0,
 }) => {
+  const { t } = useTranslation();
   // Clamp percentage between 0 and 100
   const p = Math.min(100, Math.max(0, percentage));
 
@@ -145,7 +147,7 @@ const WaveProgress = ({
             </span>
           </div>
           <div className="text-[9px] text-gray-300 mt-2 font-mono bg-black/60 px-2 py-0.5 rounded backdrop-blur-md border border-white/10 shadow-[0_2px_5px_rgba(0,0,0,0.5)]">
-            {p.toFixed(1)}% Capacity
+            {p.toFixed(1)}% {t("hud.capacity")}
           </div>
         </div>
       </div>

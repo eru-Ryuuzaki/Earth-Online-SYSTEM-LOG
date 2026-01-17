@@ -5,11 +5,13 @@ export const logTemplates = {
       type: "INFO",
       icon: "✅",
       msg: "System maintenance cycle completed. No anomalies detected.",
+      key: "check",
     },
     {
       type: "INFO",
       icon: "📊",
       msg: "Daily data synchronization finished. Integrity: 100%.",
+      key: "sync",
     },
     {
       type: "RECHARGE",
