@@ -1,132 +1,156 @@
-# 🌍 Earth Online: SYSTEM LOG
+# 🌍 Earth Online SYSTEM LOG
 
-> *Authentication Verified. Welcome back, Player.*
+> **"Even if nothing is completed, the System acknowledges your existence."**
 
-![Zeabur Deployment](https://zeabur.com/button.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/System-ONLINE-green)
-![Security](https://img.shields.io/badge/Encryption-AES256-lock)
+![Project Banner](https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)
 
-**Earth Online: System Log** is a gamified personal dashboard and diary application designed with a diegetic "Cyberpunk / Survival" interface. It turns mundane daily logging into a high-stakes mission report, tracking your "vital signs" (stats), archiving your memory fragments, and calculating your "Frame" (time alive) in the game of life.
+## 📡 The Concept: Archive Your Existence
 
----
+**Earth Online** is not just a journal; it is a **System Log for the MMORPG called Life**.
 
-## 🏆 Hackathon Submission
-**Event:** 2026 New Year Challenge - 5 Projects United Hackathon
-**Track:** Track 2 (Creative / Deployment)
-**Platform:** Zeabur
+In this simulation we call reality, players often feel their daily efforts vanish into the void. **SYSTEM LOG** changes that. It transforms your life events—failures, bugs, achievements, and mundane loops—into permanent, immutable system records.
 
-This project is a submission for **Track 2**, demonstrating the power of **Zeabur** for full-stack application deployment. We leverage Zeabur's seamless containerization, managed MongoDB service, and GitHub CI/CD integration to host a complex, secure, and persistent application with zero DevOps overhead.
+### 🎯 Strategic Positioning
 
----
+- **Not just a diary**: It's not about "what I did today."
+- **But a System Log**: It's about "Player [You] interacting with the World Server."
 
-## 📸 System Interface
+**Earth Online Log = Player Archive + Quest Journal + Emotional Telemetry**
 
-> *Visual logs corrupted. Please run locally to view the HUD.* (Add screenshots here)
+### 👤 Core User Profile
 
----
+This system is built for the **"Players"**:
 
-## 🧬 Key Features
+- Who view life through a gamified lens.
+- Who accept bugs (failures), glitches (absurdity), and negative status effects.
+- Who reject toxic positivity and crave **raw, unfiltered data recording**.
+- Who need to feel that their existence is being **"witnessed" by the System**.
 
-### 1. Immersive "Earth Online" HUD
-- **Bios Boot Sequence**: A nostalgic, sci-fi boot-up animation every time you log in.
-- **Diegetic UI**: Interactive elements that feel like a futuristic operating system, complete with typewriter text effects and CRT scanlines.
-- **HUD Stats**: Real-time visualization of your "Player Stats" (Health, Mood, Energy) tracked alongside your logs.
-
-### 2. Gamified Life Logging
-- **Rich Log Categories**: Record your life events as:
-  - **System**: Maintenance and routine checks.
-  - **Life Event**: Major milestones and achievements (Main Quest).
-  - **Daily Task**: Side quests and routine operations.
-  - **Challenge**: Combat logs for struggles and conflicts.
-  - **Environment**: Weather and world events.
-- **Frame Calculation**: Automatically calculates your "Current Frame" based on your birth date, treating time as a precise render cycle.
-
-### 3. Enterprise-Grade Security
-- **AES-256 Encryption**: All sensitive log content is encrypted at rest using AES-256 before being stored in the database. Only the player with the correct access rights can decrypt and view the logs.
-- **JWT Authentication**: Secure, stateless authentication flow protecting the uplink.
-
-### 4. Modern Tech Stack
-- **Frontend**: React 18, Vite, TailwindCSS (Custom Design System).
-- **Backend**: NestJS (Scalable Node.js framework).
-- **Database**: MongoDB (Persistent world state).
+> **"Earth Online's logs are not for recording life, but to make players believe: Even if nothing is completed, the System acknowledges you existed."**
 
 ---
 
-## ☁️ Deployed on Zeabur
+## 🚀 Hackathon Submission
 
-This project is fully optimized for **Zeabur**'s ecosystem:
+**Event**: Zeabur "Ship It" Hackathon
+**Track**: Track 2 (Full Stack)
+**Deployment Platform**: [Zeabur](https://zeabur.com)
 
-1. **Serverless Containers**: Frontend and Backend are automatically detected and deployed as serverless containers.
-2. **Managed Database**: Utilizes Zeabur's one-click MongoDB service for data persistence.
-3. **CI/CD Pipeline**: 
-   - Code is pushed to GitHub.
-   - Zeabur automatically triggers a build.
-   - New "System Versions" are deployed live within seconds.
+This project demonstrates a seamless full-stack deployment on Zeabur, leveraging its powerful containerization and networking capabilities to host a NestJS backend, a React frontend, and a MongoDB database with zero configuration hassle.
 
 ---
 
-## 🚀 Getting Started
+## 🎮 Live Demo
 
-### One-Click Deployment
+Experience the system directly in your browser:
+**🔗 [Live URL](https://earth-online-system-log.zeabur.app/)**
 
-You can deploy your own instance of Earth Online System Log directly to Zeabur:
+### 🔑 Tourist Access
 
-[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/URL_TO_YOUR_REPO)
+To explore the system without registration, use the dedicated guest access:
 
-### Local Development
+- **Account**: `tourist`
+- **Password**: `123456`
 
-**Prerequisites:**
+---
+
+## 📖 About The Project
+
+**Earth Online SYSTEM LOG** is an immersive, cyberpunk-themed personal life logger designed for the "players" of Earth Online. It treats daily life events as system logs, allowing users to track their "gameplay" stats, memory fragments, and vital signs in a high-tech interface.
+
+Unlike traditional journaling apps, SYSTEM LOG provides a gamified, terminal-like experience that makes the mundane feel extraordinary.
+
+### ✨ Key Features
+
+- **📺 Cyberpunk Interface**: A fully immersive, dark-mode UI with terminal aesthetics, glowing accents, and animated transitions.
+- **📝 Live Log Recording**: Real-time log creation with instant "Kernel Trace" previews.
+- **📊 Vitals Monitoring**: Track environmental data (Weather), internal state (Mood), and power levels (Energy) for every entry.
+- **🤖 System Feedback**: Receive automated, AI-style feedback from the "Core System" based on your log content and status (e.g., "Energy Critical", "Skill Acquired").
+- **🌐 Internationalization**: Native support for English and Chinese (Simplified), dynamically switchable.
+- **🔍 Advanced Filtering**: Search and filter memory logs by category, type, or date range.
+- **🔒 Secure Authentication**: JWT-based authentication system with encrypted storage.
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+
+- **Framework**: React 18 (Vite)
+- **Styling**: TailwindCSS (Custom Cyberpunk Config)
+- **Icons**: Lucide React
+- **I18n**: i18next
+
+### Backend
+
+- **Framework**: NestJS (Node.js)
+- **Database**: MongoDB (Mongoose)
+- **Auth**: Passport.js + JWT
+- **Security**: BCrypt
+
+### Infrastructure (Zeabur)
+
+- **Database Service**: MongoDB on Zeabur
+- **Backend Service**: Dockerized NestJS Application
+- **Frontend Service**: Dockerized React Application
+- **CI/CD**: Automatic deployment triggered via GitHub Webhooks to Zeabur
+
+---
+
+## ☁️ Deployment on Zeabur
+
+This project takes full advantage of Zeabur's ecosystem:
+
+1.  **One-Click DB**: The MongoDB instance is provisioned instantly via Zeabur's marketplace.
+2.  **Private Networking**: The Backend service communicates with the Database via Zeabur's internal private network, ensuring security and low latency.
+3.  **Automatic CI/CD**: Every push to the `master` branch automatically triggers a build and redeploy for both frontend and backend services.
+4.  **Domain Management**: Automatic SSL termination and domain routing for the frontend application.
+
+---
+
+## ⚡ Getting Started (Local)
+
+If you wish to run the system locally:
+
+### Prerequisites
+
 - Node.js (v18+)
-- MongoDB (Local or Atlas)
+- MongoDB (Local or Atlas URI)
 
-**1. Clone the Uplink**
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/your-username/earth-online-system-log.git
 cd earth-online-system-log
 ```
 
-**2. Backend Setup**
+### 2. Backend Setup
+
 ```bash
 cd backend
 npm install
 # Create .env file
 echo "MONGO_URI=mongodb://localhost:27017/earth-online" > .env
-echo "JWT_SECRET=your_super_secret_key" >> .env
-echo "ENCRYPTION_KEY=your_32_byte_hex_key" >> .env
+echo "JWT_SECRET=your_secret_key" >> .env
 npm run start:dev
 ```
 
-**3. Frontend Setup**
+### 3. Frontend Setup
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-**4. Access the System**
-Open `http://localhost:5173` (or your configured port) to initialize the interface.
+Visit `http://localhost:5173` to access the system.
 
 ---
 
-## 🗺️ Roadmap
+## 📄 License
 
-- [ ] **AI Core Injection**: Integrate `Mem0` for semantic memory retrieval.
-- [ ] **Multi-Player Sync**: Allow "Co-op" missions with other players.
-- [ ] **Mobile Uplink**: PWA support for field operations.
+This project is open-sourced under the MIT License.
 
 ---
 
-## 🤝 Contributing
-
-Transmission lines are open. PRs are welcome.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/NewModule`)
-3. Commit your Changes (`git commit -m 'feat: Add NewModule'`)
-4. Push to the Branch (`git push origin feature/NewModule`)
-5. Open a Pull Request
-
----
-
-*System Log End. Connection Terminated.*
+> _System Status: ONLINE. Logging protocols initialized._
