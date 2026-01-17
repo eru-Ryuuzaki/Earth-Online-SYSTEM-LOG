@@ -120,6 +120,12 @@ const SystemLogModule = ({
         return "text-red-300 bg-red-500/20 border-red-400/30";
       case "SUCCESS":
         return "text-green-300 bg-green-500/20 border-green-400/30";
+      case "DREAM":
+      case "NIGHTMARE":
+      case "LUCID":
+      case "VISION":
+      case "DEJA_VU":
+        return "text-indigo-300 bg-indigo-500/20 border-indigo-400/30";
       default:
         return "text-gray-300 bg-gray-500/20 border-gray-400/30";
     }
