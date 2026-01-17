@@ -446,17 +446,6 @@ const SystemLogCreate = ({
             </label>
           </div>
 
-          {/* Live Preview */}
-          <div className="bg-black/60 border border-cyan-500/40 p-4 rounded font-mono text-[11px] md:text-xs text-cyan-300 break-all shadow-[0_0_20px_rgba(6,182,212,0.15)] relative group leading-relaxed">
-            <div
-              className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
-              title="Live Recording"
-            ></div>
-            [{currentTime}][Frame {currentFrame}][
-            {t(`categories.${category}`).toUpperCase()}]{t(`types.${type}`)}:{" "}
-            {icon} {message || "..."}
-          </div>
-
           <div className="flex gap-2 text-xs font-mono">
             <div className="flex-1">
               <label className="text-gray-500 block mb-1">DATE</label>
@@ -499,11 +488,13 @@ const SystemLogCreate = ({
                 category={category}
               />
             </div>
-            <div className="w-16 pt-7">
-              <div className="text-center text-xs text-gray-500 mb-1">Icon</div>
+            <div className="w-16 pt-5">
+              <div className="text-center text-[10px] text-gray-400 mb-1 uppercase tracking-wider font-bold">
+                Icon
+              </div>
               <div className="flex justify-center">
                 <button
-                  className="w-10 h-10 text-xl bg-gray-800 border border-gray-700 rounded hover:border-cyan-500 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center text-lg bg-black/60 border border-gray-700 rounded hover:border-cyan-500 transition-colors"
                   onClick={() => setIsCustomIcon(!isCustomIcon)}
                 >
                   {icon}
@@ -520,6 +511,17 @@ const SystemLogCreate = ({
               commonIcons={commonIcons}
             />
           )}
+
+          {/* Live Preview - Moved here */}
+          <div className="bg-black/60 border border-cyan-500/40 p-4 rounded font-mono text-[11px] md:text-xs text-cyan-300 break-all shadow-[0_0_20px_rgba(6,182,212,0.15)] relative group leading-relaxed">
+            <div
+              className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
+              title="Live Recording"
+            ></div>
+            [{currentTime}][Frame {currentFrame}][
+            {t(`categories.${category}`).toUpperCase()}]{t(`types.${type}`)}:{" "}
+            {icon} {message || "..."}
+          </div>
         </div>
 
         {/* SECTION 2: VITALS */}

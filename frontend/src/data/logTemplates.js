@@ -82,7 +82,7 @@ export const logTemplates = {
   ],
   dream: [
     {
-      type: "DREAM",
+      type: "REM_CYCLE",
       icon: "💤",
       msg: "Subconscious simulation ended. Memory fragment saved.",
     },

@@ -39,9 +39,9 @@ const SystemLogFilter = ({ filters, onFilterChange }) => {
   ).length;
 
   const selectStyle =
-    "w-full bg-cyan-950/40 border border-cyan-500/50 rounded px-2 py-1.5 text-xs text-cyan-50 outline-none focus:border-cyan-400 focus:bg-cyan-900/60 transition-all appearance-none cursor-pointer hover:border-cyan-400 hover:bg-cyan-900/40 shadow-[0_0_10px_rgba(6,182,212,0.1)]";
+    "w-full bg-cyan-950/60 border border-cyan-500/50 rounded px-2 py-1.5 text-xs text-cyan-50 outline-none focus:border-cyan-400 focus:bg-cyan-900/80 transition-all appearance-none cursor-pointer hover:border-cyan-400 hover:bg-cyan-900/60 shadow-[0_0_10px_rgba(6,182,212,0.1)]";
   const inputStyle =
-    "w-full bg-cyan-950/40 border border-cyan-500/50 rounded px-2 py-1.5 text-xs text-cyan-50 outline-none focus:border-cyan-400 focus:bg-cyan-900/60 transition-all placeholder-cyan-400/30 shadow-[0_0_10px_rgba(6,182,212,0.1)]";
+    "w-full bg-cyan-950/60 border border-cyan-500/50 rounded px-2 py-1.5 text-xs text-cyan-50 outline-none focus:border-cyan-400 focus:bg-cyan-900/80 transition-all placeholder-cyan-400/30 shadow-[0_0_10px_rgba(6,182,212,0.1)]";
 
   return (
     <div className="mb-6 space-y-2">
@@ -54,7 +54,7 @@ const SystemLogFilter = ({ filters, onFilterChange }) => {
             onKeyDown={handleKeyDown}
             onBlur={handleSearchSubmit}
             placeholder={t("logs.filter.search_placeholder")}
-            className="w-full bg-black/40 border border-cyan-500/30 rounded pl-10 pr-4 py-2 text-cyan-100 placeholder-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-mono text-sm"
+            className="w-full bg-black/60 border border-cyan-500/30 rounded pl-10 pr-4 py-2 text-cyan-100 placeholder-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-mono text-sm"
           />
           <Search className="w-4 h-4 text-cyan-500 absolute left-3 top-2.5" />
         </div>

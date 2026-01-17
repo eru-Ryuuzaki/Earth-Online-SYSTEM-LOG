@@ -15,13 +15,13 @@ const LogFormTypeSelector = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label className="block text-sm font-bold text-gray-300 mb-2 tracking-wide">
-          1️⃣ Category <span className={`${theme.text} text-xs font-normal opacity-80`}>{t("logs.filter_category")}</span>
+        <label className="block text-[10px] font-bold text-gray-400 mb-1 tracking-wider uppercase">
+          Category
         </label>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className={`w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white ${theme.hoverBorder} transition-colors`}
+          className={`w-full bg-black/60 border border-gray-700 rounded px-2 py-1.5 text-xs text-cyan-100 outline-none focus:border-cyan-500 focus:bg-cyan-950/50 transition-all cursor-pointer ${theme.hoverBorder}`}
         >
           {categories.map((cat) => (
             <option key={cat} value={cat}>
@@ -32,13 +32,13 @@ const LogFormTypeSelector = ({
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-gray-300 mb-2 tracking-wide">
-          2️⃣ Type <span className={`${theme.text} text-xs font-normal opacity-80`}>(选择等级)</span>
+        <label className="block text-[10px] font-bold text-gray-400 mb-1 tracking-wider uppercase">
+          Type
         </label>
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className={`w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white ${theme.hoverBorder} transition-colors`}
+          className={`w-full bg-black/60 border border-gray-700 rounded px-2 py-1.5 text-xs text-cyan-100 outline-none focus:border-cyan-500 focus:bg-cyan-950/50 transition-all cursor-pointer ${theme.hoverBorder}`}
         >
           {availableTypes.map((typeOption) => (
             <option key={typeOption} value={typeOption}>
