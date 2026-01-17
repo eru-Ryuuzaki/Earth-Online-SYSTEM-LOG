@@ -5,7 +5,7 @@ import {
   Calendar as CalendarIcon,
 } from "lucide-react";
 
-const LogCalendar = ({ logs = [] }) => {
+const LogCalendar = ({ logs = [], onLogClick }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [ticker, setTicker] = useState(0);
 
@@ -137,6 +137,8 @@ const LogCalendar = ({ logs = [] }) => {
 
   const renderDays = () => {
     const days = [];
+    const totalCells = 42; // 6 rows * 7 columns
+
     // Empty cells for previous month
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="h-7 md:h-9" />);
@@ -166,7 +168,10 @@ const LogCalendar = ({ logs = [] }) => {
         const activeLog = dayLogs[activeLogIndex];
 
         content = (
-          <div className="w-full h-full flex items-center justify-center relative group cursor-default">
+          <div
+            className="w-full h-full flex items-center justify-center relative group cursor-pointer"
+            onClick={() => onLogClick && onLogClick(activeLog)}
+          >
             {/* Date Number Overlay (Top Left) */}
             <span
               className={`absolute top-0.5 left-1 text-[8px] font-mono leading-none ${
@@ -245,6 +250,18 @@ const LogCalendar = ({ logs = [] }) => {
         >
           {content}
         </div>
+      );
+    }
+
+    // Fill remaining cells to complete 42 cells (6 rows)
+    const filledCells = firstDay + daysInMonth;
+    const remainingCells = totalCells - filledCells;
+    for (let i = 0; i < remainingCells; i++) {
+      days.push(
+        <div
+          key={`next-empty-${i}`}
+          className="h-7 md:h-9 opacity-20 border border-white/5 bg-white/5 pointer-events-none"
+        />
       );
     }
 

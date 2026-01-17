@@ -7,7 +7,7 @@ const LogFormTypeSelector = ({
   availableTypes,
   type,
   setType,
-  theme,
+  theme = { text: "text-cyan-400", hoverBorder: "hover:border-cyan-500" },
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

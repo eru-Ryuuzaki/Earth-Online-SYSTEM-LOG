@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
+import ProfileForm from "./ProfileForm";
 
 const BirthdayModal = ({ username, onComplete }) => {
   const [date, setDate] = useState("");
+  const [lifespan, setLifespan] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -14,31 +16,39 @@ const BirthdayModal = ({ username, onComplete }) => {
     setLoading(true);
     setError("");
 
-    // Create a date object from the input string (YYYY-MM-DD)
-    // Interpret it as local time midnight
-    const [y, m, d] = date.split('-').map(Number);
-    const localDate = new Date(y, m - 1, d);
-    
-    // Convert to ISO string for storage (this will be UTC, e.g., previous day 16:00 for CN)
-    // Backend stores dates in UTC.
-    const isoDate = localDate.toISOString();
+    // Validate lifespan only if entered
+    let finalLifespan = null;
+    if (lifespan) {
+      const parsed = parseInt(lifespan);
+      if (isNaN(parsed) || parsed < 1 || parsed > 150) {
+        setError(
+          "Invalid Temporal Horizon. Please enter a value between 1-150 or leave empty."
+        );
+        setLoading(false);
+        return;
+      }
+      finalLifespan = parsed;
+    }
 
     try {
       const token = localStorage.getItem("access_token");
       const res = await axios.patch(
         `${API_BASE_URL}/player/${username}/profile`,
-        { birthday: isoDate }, // Send ISO UTC
+        { birthday: date, expectedLifespan: finalLifespan },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
-      // Update local storage
-      const playerInfo = JSON.parse(localStorage.getItem("player_info") || "{}");
-      playerInfo.birthday = isoDate;
+
+      // Update local storage if needed, but mainly notify parent
+      const playerInfo = JSON.parse(
+        localStorage.getItem("player_info") || "{}"
+      );
+      playerInfo.birthday = date;
+      playerInfo.expectedLifespan = finalLifespan;
       localStorage.setItem("player_info", JSON.stringify(playerInfo));
 
-      onComplete(isoDate);
+      onComplete({ birthday: date, expectedLifespan: finalLifespan });
     } catch (err) {
       console.error(err);
       setError("Failed to initialize timeline. Server rejected value.");
@@ -66,24 +76,19 @@ const BirthdayModal = ({ username, onComplete }) => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative">
-              <label className="block text-left text-xs text-cyan-600 mb-1 font-mono">
-                DATE_OF_BIRTH (YYYY-MM-DD)
-              </label>
-              <input
-                type="date"
-                required
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-black border border-cyan-800 text-cyan-300 p-3 font-mono focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_10px_rgba(6,182,212,0.3)]"
-              />
-            </div>
+          <form onSubmit={handleSubmit}>
+            <ProfileForm
+              birthday={date}
+              setBirthday={setDate}
+              lifespan={lifespan}
+              setLifespan={setLifespan}
+              error={error} // Pass error down to display in form if related to fields
+            />
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 px-4 mt-2 font-mono font-bold tracking-widest text-black transition-all ${
+              className={`w-full py-3 px-4 mt-6 font-mono font-bold tracking-widest text-black transition-all rounded ${
                 loading
                   ? "bg-gray-600 cursor-not-allowed"
                   : "bg-cyan-500 hover:bg-cyan-400 hover:shadow-[0_0_15px_rgba(6,182,212,0.6)]"
@@ -92,7 +97,7 @@ const BirthdayModal = ({ username, onComplete }) => {
               {loading ? "INITIALIZING..." : "CONFIRM TIMELINE"}
             </button>
           </form>
-          
+
           <div className="mt-4 text-[10px] text-gray-600 font-mono">
             SECURE PROTOCOL V2.4 // ENCRYPTED CONNECTION
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SystemLogCreate from "./SystemLogCreate";
 import { useSystemLogs } from "../../hooks/useSystemLogs";
 import {
@@ -16,9 +16,10 @@ const SystemLogModule = ({
   playerStats,
   onUpdateVitals,
   onLogAdded,
+  selectedLog,
+  onSelectLog: setSelectedLog,
 }) => {
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedLog, setSelectedLog] = useState(null);
   const { logs, addLog, refreshLogs, loading } = useSystemLogs();
 
   const handleSave = async (content, type) => {
@@ -36,6 +37,9 @@ const SystemLogModule = ({
       } catch (e) {}
     }
   };
+
+  // If selectedLog is provided via props, we don't need internal state for it.
+  // The prop 'selectedLog' and 'setSelectedLog' are used throughout.
 
   const getLogSummary = (content) => {
     try {

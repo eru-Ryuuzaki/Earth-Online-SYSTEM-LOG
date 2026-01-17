@@ -11,6 +11,7 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [username, setUsername] = useState("");
+  const [selectedLog, setSelectedLog] = useState(null);
 
   const {
     isBooting,
@@ -29,6 +30,7 @@ const App = () => {
     exp: 7580,
     level: 25,
     birthday: null,
+    expectedLifespan: 100,
   });
 
   useEffect(() => {
@@ -39,7 +41,11 @@ const App = () => {
       setIsAuthenticated(true);
       if (savedPlayer.username) setUsername(savedPlayer.username);
       if (savedPlayer.birthday) {
-        setPlayerStats((prev) => ({ ...prev, birthday: savedPlayer.birthday }));
+        setPlayerStats((prev) => ({
+          ...prev,
+          birthday: savedPlayer.birthday,
+          expectedLifespan: savedPlayer.expectedLifespan || 100,
+        }));
       }
     }
   }, []);
@@ -56,13 +62,27 @@ const App = () => {
         level: playerData.level || prev.level,
         exp: playerData.exp || prev.exp,
         birthday: playerData.birthday || null,
+        expectedLifespan:
+          playerData.expectedLifespan || prev.expectedLifespan || 100,
       }));
     }
     setIsAuthenticated(true);
   };
 
-  const handleUpdateBirthday = (newBirthday) => {
-    setPlayerStats((prev) => ({ ...prev, birthday: newBirthday }));
+  const handleUpdateBirthday = (data) => {
+    // Check if data is just a string (old behavior) or object
+    if (typeof data === "string") {
+      setPlayerStats((prev) => ({ ...prev, birthday: data }));
+    } else if (data && typeof data === "object") {
+      setPlayerStats((prev) => ({
+        ...prev,
+        birthday: data.birthday,
+        expectedLifespan:
+          data.expectedLifespan !== undefined
+            ? data.expectedLifespan
+            : prev.expectedLifespan,
+      }));
+    }
   };
 
   const getPlayerAge = () => {
@@ -113,6 +133,7 @@ const App = () => {
             getPlayerAge={getPlayerAge}
             getSecondsSinceBirth={getSecondsSinceBirth}
             refreshTrigger={logsUpdated}
+            onLogClick={setSelectedLog}
           />
         </div>
 
@@ -123,6 +144,8 @@ const App = () => {
             playerStats={playerStats}
             onUpdateVitals={updateVitals}
             onLogAdded={handleLogAdded}
+            selectedLog={selectedLog}
+            onSelectLog={setSelectedLog}
           />
         </div>
 

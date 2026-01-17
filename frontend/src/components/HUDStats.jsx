@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Heart, Brain, Activity, Cake, Clock } from "lucide-react";
+import { Heart, Brain, Activity, Cake, Clock, Zap, Wifi } from "lucide-react";
 import LogCalendar from "./LogCalendar";
 import { useSystemLogs } from "../hooks/useSystemLogs";
 
-const HUDStats = ({ playerStats, buffs, debuffs, refreshTrigger }) => {
+const HUDStats = ({
+  playerStats,
+  buffs,
+  debuffs,
+  refreshTrigger,
+  getPlayerAge,
+  onLogClick,
+}) => {
   const [runtime, setRuntime] = useState({ s: 0, f: 0 });
   const { logs, refreshLogs } = useSystemLogs();
 
@@ -27,16 +34,45 @@ const HUDStats = ({ playerStats, buffs, debuffs, refreshTrigger }) => {
     return () => clearInterval(timer);
   }, [playerStats.birthday]);
 
-  const getPlayerAge = () => {
-    const birthDate = new Date(playerStats.birthday);
-    const now = new Date();
-    const age = now.getFullYear() - birthDate.getFullYear();
-    const m = now.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && now.getDate() < birthDate.getDate())) {
-      return age - 1;
-    }
-    return age;
+  const getLifeProgress = () => {
+    if (!playerStats.birthday || !playerStats.expectedLifespan) return null;
+    const age = getPlayerAge();
+    const total = parseInt(playerStats.expectedLifespan);
+    if (isNaN(total) || total <= 0) return null;
+    return Math.min(100, Math.max(0, (age / total) * 100));
   };
+
+  const getRemainingTime = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const endOfWeek = new Date(now);
+    endOfWeek.setDate(now.getDate() + (7 - now.getDay()));
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const endOfMonth = new Date(currentYear, now.getMonth() + 1, 0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    const endOfYear = new Date(currentYear, 11, 31);
+    endOfYear.setHours(23, 59, 59, 999);
+
+    const diffDays = (target) =>
+      Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+
+    // Calculate weeks remaining in year
+    // Simple approx: days remaining / 7
+    const daysLeftInYear = diffDays(endOfYear);
+    const weeksLeftInYear = Math.ceil(daysLeftInYear / 7);
+
+    return {
+      week: diffDays(endOfWeek),
+      month: diffDays(endOfMonth),
+      year: daysLeftInYear,
+      yearWeeks: weeksLeftInYear,
+    };
+  };
+
+  const remaining = getRemainingTime();
+  const lifeProgress = getLifeProgress();
 
   return (
     <div className="max-w-7xl mx-auto mb-6 px-4 md:px-0">
@@ -72,81 +108,99 @@ const HUDStats = ({ playerStats, buffs, debuffs, refreshTrigger }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* COL 1: Vitals (HP/Mental/Experience) */}
-          <div className="space-y-3">
-            {/* HP -> Physical Health */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-red-500" />
-                  <span className="text-sm font-bold text-gray-300">
-                    PHYSICAL INTEGRITY
+          {/* COL 1: Vitals & Time Dilation */}
+          <div className="space-y-4">
+            {/* Vitals Grid */}
+            <div className="grid grid-cols-1 gap-3">
+              {/* Energy -> Kinetic Energy */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-yellow-400" />
+                    <span className="text-[10px] font-bold text-gray-300">
+                      KINETIC
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-mono">
+                    {playerStats.energy || 80}%
                   </span>
                 </div>
-                <span className="text-xs text-gray-400 font-mono">
-                  {playerStats.hp}%
-                </span>
-              </div>
-              <div className="h-2 bg-gray-800 rounded-full overflow-hidden border border-red-900/30 relative group">
-                <div
-                  className="h-full bg-gradient-to-r from-red-900 via-red-600 to-red-500 transition-all duration-1000 relative"
-                  style={{
-                    width: `${(playerStats.hp / playerStats.maxHp) * 100}%`,
-                  }}
-                >
-                  <div className="absolute top-0 right-0 h-full w-1 bg-white/50 animate-pulse"></div>
+                <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden border border-yellow-900/30">
+                  <div
+                    className="h-full bg-gradient-to-r from-yellow-900 via-yellow-500 to-yellow-400 transition-all duration-1000"
+                    style={{ width: `${playerStats.energy || 80}%` }}
+                  ></div>
                 </div>
               </div>
             </div>
 
-            {/* Mental -> Mental Stability */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm font-bold text-gray-300">
-                    MENTAL STABILITY
-                  </span>
+            {/* TEMPORAL METRICS (Countdown) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-800/30 border border-white/5 p-4 rounded text-center">
+                <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
+                  Week Remaining
                 </div>
-                <span className="text-xs text-gray-400 font-mono">
-                  {playerStats.mental}%
-                </span>
+                <div className="text-2xl font-mono font-bold text-white">
+                  {remaining.week}
+                </div>
+                <div className="text-[9px] text-gray-600 mt-1">Days</div>
               </div>
-              <div className="h-2 bg-gray-800 rounded-full overflow-hidden border border-blue-900/30 relative">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-900 via-blue-600 to-blue-500 transition-all duration-1000 relative"
-                  style={{
-                    width: `${
-                      (playerStats.mental / playerStats.maxMental) * 100
-                    }%`,
-                  }}
-                >
-                  <div className="absolute top-0 right-0 h-full w-1 bg-white/50 animate-pulse"></div>
+              <div className="bg-gray-800/30 border border-white/5 p-4 rounded text-center">
+                <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
+                  Month Remaining
                 </div>
+                <div className="text-2xl font-mono font-bold text-white">
+                  {remaining.month}
+                </div>
+                <div className="text-[9px] text-gray-600 mt-1">Days</div>
+              </div>
+              <div className="bg-gray-800/30 border border-white/5 p-4 rounded text-center">
+                <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
+                  Year Remaining
+                </div>
+                <div className="text-2xl font-mono font-bold text-white">
+                  {remaining.year}
+                </div>
+                <div className="text-[9px] text-gray-600 mt-1">Days</div>
+              </div>
+              <div className="bg-gray-800/30 border border-white/5 p-4 rounded text-center">
+                <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
+                  Year Weeks
+                </div>
+                <div className="text-2xl font-mono font-bold text-cyan-400">
+                  {remaining.yearWeeks}
+                </div>
+                <div className="text-[9px] text-gray-600 mt-1">Weeks</div>
               </div>
             </div>
 
-            {/* Experience (Moved from Col 2) */}
-            <div className="flex items-center justify-between bg-gray-800/30 rounded p-3 border border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/10 rounded">
-                  <Activity className="w-4 h-4 text-purple-400" />
+            {/* LIFE PROGRESS (Optional) */}
+            {lifeProgress !== null && (
+              <div className="bg-black/20 p-3 rounded border border-white/5 relative overflow-hidden group">
+                <div className="flex justify-between items-center mb-1 relative z-10">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-red-500" />
+                    SESSION_LENGTH
+                  </span>
+                  <span className="text-[10px] font-mono text-gray-300">
+                    {lifeProgress.toFixed(1)}% / {playerStats.expectedLifespan}Y
+                  </span>
                 </div>
-                <div>
-                  <div className="text-[10px] text-gray-500 uppercase font-bold">
-                    Experience
-                  </div>
-                  <div className="text-sm font-mono text-purple-300">
-                    {playerStats.exp} XP
-                  </div>
+                <div className="h-2 bg-gray-800 rounded-full overflow-hidden border border-gray-700 relative z-10">
+                  <div
+                    className="h-full bg-gradient-to-r from-gray-600 via-gray-400 to-white transition-all duration-1000"
+                    style={{ width: `${lifeProgress}%` }}
+                  ></div>
                 </div>
+                {/* Background decoration */}
+                <div className="absolute top-0 right-0 h-full w-20 bg-gradient-to-l from-red-500/5 to-transparent pointer-events-none"></div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* COL 2: Calendar */}
           <div className="h-full">
-            <LogCalendar logs={logs} />
+            <LogCalendar logs={logs} onLogClick={onLogClick} />
           </div>
         </div>
       </div>
