@@ -53,7 +53,7 @@ const SystemLogModule = ({
         category,
         metadata,
       });
-      if (success) addToast("Log updated successfully", "SUCCESS");
+      if (success) addToast(t("logs.toasts.update_success"), "SUCCESS");
     } else {
       success = await addLog(content, type, date, category, metadata);
       if (success) {
@@ -74,6 +74,7 @@ const SystemLogModule = ({
       setIsCreating(false);
       setEditingLog(null);
       refreshLogs(filters); // Refresh with current filters
+      if (onLogAdded) onLogAdded(); // Refresh HUD stats (including calendar)
     }
   };
 
@@ -87,8 +88,9 @@ const SystemLogModule = ({
     if (!deleteId) return;
     const success = await deleteLog(deleteId);
     if (success) {
-      addToast("Log deleted successfully", "SUCCESS");
+      addToast(t("logs.toasts.delete_success"), "SUCCESS");
       if (selectedLog?._id === deleteId) setSelectedLog(null);
+      if (onLogAdded) onLogAdded(); // Refresh HUD stats (including calendar)
     }
     setDeleteId(null);
   };
