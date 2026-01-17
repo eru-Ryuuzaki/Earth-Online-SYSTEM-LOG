@@ -39,7 +39,14 @@ const App = () => {
 
     if (token) {
       setIsAuthenticated(true);
-      if (savedPlayer.username) setUsername(savedPlayer.username);
+      if (savedPlayer.username) {
+        setUsername(savedPlayer.username);
+        // Ensure username is also synced to playerStats
+        setPlayerStats((prev) => ({
+          ...prev,
+          username: savedPlayer.username,
+        }));
+      }
       if (savedPlayer.birthday) {
         setPlayerStats((prev) => ({
           ...prev,
@@ -58,6 +65,7 @@ const App = () => {
       setUsername(playerData.username);
       setPlayerStats((prev) => ({
         ...prev,
+        username: playerData.username, // Ensure username is synced
         hp: playerData.hp || prev.hp,
         maxHp: playerData.maxHp || prev.maxHp,
         mental: playerData.mental || prev.mental,

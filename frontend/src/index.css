@@ -214,3 +214,21 @@ button:hover::before {
   width: 300px;
   height: 300px;
 }
+
+/* Wave Animation */
+@keyframes wave {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-wave {
+  animation: wave 10s linear infinite;
+}
+
+.animate-wave-slow {
+  animation: wave 15s linear infinite reverse;
+}

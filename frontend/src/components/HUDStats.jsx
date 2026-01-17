@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Heart, Brain, Activity, Cake, Clock, Zap, Wifi } from "lucide-react";
+import {
+  Heart,
+  Brain,
+  Activity,
+  Cake,
+  Clock,
+  Zap,
+  Wifi,
+  TrendingUp,
+  ChevronUp,
+  Star,
+} from "lucide-react";
 import LogCalendar from "./LogCalendar";
+import WaveProgress from "./WaveProgress";
 import { useSystemLogs } from "../hooks/useSystemLogs";
 
 const HUDStats = ({
@@ -56,21 +68,65 @@ const HUDStats = ({
     const diffDays = (target) =>
       Math.ceil((target - now) / (1000 * 60 * 60 * 24));
 
-    // Calculate weeks remaining in year
-    // Simple approx: days remaining / 7
     const daysLeftInYear = diffDays(endOfYear);
     const weeksLeftInYear = Math.ceil(daysLeftInYear / 7);
 
+    // Calculate Percentages
+    const weekDays = 7;
+    const monthDays = new Date(currentYear, now.getMonth() + 1, 0).getDate();
+    const yearDays =
+      (currentYear % 4 === 0 && currentYear % 100 !== 0) ||
+      currentYear % 400 === 0
+        ? 366
+        : 365;
+    const yearWeeks = 52; // Approx
+
+    const weekRem = diffDays(endOfWeek);
+    const monthRem = diffDays(endOfMonth);
+
     return {
-      week: diffDays(endOfWeek),
-      month: diffDays(endOfMonth),
+      week: weekRem,
+      weekPct: (weekRem / weekDays) * 100,
+      month: monthRem,
+      monthPct: (monthRem / monthDays) * 100,
       year: daysLeftInYear,
+      yearPct: (daysLeftInYear / yearDays) * 100,
       yearWeeks: weeksLeftInYear,
+      yearWeeksPct: (weeksLeftInYear / yearWeeks) * 100,
     };
+  };
+
+  const getAgeProgress = () => {
+    if (!playerStats.birthday) return 0;
+    const now = new Date();
+    const birthDate = new Date(playerStats.birthday);
+
+    // Get next birthday
+    const nextBirthday = new Date(
+      now.getFullYear(),
+      birthDate.getMonth(),
+      birthDate.getDate()
+    );
+    if (nextBirthday < now) {
+      nextBirthday.setFullYear(now.getFullYear() + 1);
+    }
+
+    // Get last birthday
+    const lastBirthday = new Date(
+      nextBirthday.getFullYear() - 1,
+      birthDate.getMonth(),
+      birthDate.getDate()
+    );
+
+    const totalDuration = nextBirthday - lastBirthday;
+    const elapsed = now - lastBirthday;
+
+    return Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
   };
 
   const remaining = getRemainingTime();
   const lifeProgress = getLifeProgress();
+  const ageProgress = getAgeProgress();
 
   return (
     <div className="max-w-7xl mx-auto mb-6 px-4 md:px-0">
@@ -86,9 +142,9 @@ const HUDStats = ({
             </div>
             <div className="w-px h-4 bg-white/10 hidden md:block"></div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-400">Level:</span>
-              <span className="text-purple-400 font-bold">
-                {getPlayerAge()}
+              <span className="text-gray-400">User:</span>
+              <span className="text-purple-400 font-bold uppercase tracking-wider">
+                {playerStats.username || "UNKNOWN"}
               </span>
             </div>
           </div>
@@ -110,66 +166,84 @@ const HUDStats = ({
           <div className="space-y-4">
             {/* Vitals Grid */}
             <div className="grid grid-cols-1 gap-3">
-              {/* Energy -> Kinetic Energy */}
+              {/* Level / Age Progress */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-yellow-400" />
+                    <TrendingUp className="w-3.5 h-3.5 text-yellow-400" />
                     <span className="text-[10px] font-bold text-gray-300">
-                      KINETIC
+                      LEVEL {getPlayerAge()}
                     </span>
                   </div>
                   <span className="text-[10px] text-gray-400 font-mono">
-                    {playerStats.energy || 80}%
+                    {ageProgress.toFixed(4)}% EXP
                   </span>
                 </div>
-                <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden border border-yellow-900/30">
+                <div className="h-2 bg-gray-800 rounded-full overflow-hidden border border-yellow-900/30 relative group">
                   <div
-                    className="h-full bg-gradient-to-r from-yellow-900 via-yellow-500 to-yellow-400 transition-all duration-1000"
-                    style={{ width: `${playerStats.energy || 80}%` }}
-                  ></div>
+                    className="h-full bg-gradient-to-r from-yellow-900 via-yellow-500 to-yellow-400 transition-all duration-1000 relative"
+                    style={{ width: `${ageProgress}%` }}
+                  >
+                    <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white/50 shadow-[0_0_10px_white]"></div>
+                  </div>
+                </div>
+                <div className="text-[9px] text-gray-500 mt-1 font-mono text-right">
+                  Next Level:{" "}
+                  {new Date().getFullYear() +
+                    (new Date(
+                      new Date().getFullYear(),
+                      new Date(playerStats.birthday).getMonth(),
+                      new Date(playerStats.birthday).getDate()
+                    ) < new Date()
+                      ? 1
+                      : 0)}
+                  -
+                  {String(
+                    new Date(playerStats.birthday).getMonth() + 1
+                  ).padStart(2, "0")}
+                  -
+                  {String(new Date(playerStats.birthday).getDate()).padStart(
+                    2,
+                    "0"
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* TEMPORAL METRICS (Countdown) */}
+            {/* TEMPORAL METRICS (Wave Countdown) */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gray-800/30 border border-white/5 p-4 rounded text-center">
-                <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
-                  Week Remaining
-                </div>
-                <div className="text-2xl font-mono font-bold text-white">
-                  {remaining.week}
-                </div>
-                <div className="text-[9px] text-gray-600 mt-1">Days</div>
-              </div>
-              <div className="bg-gray-800/30 border border-white/5 p-4 rounded text-center">
-                <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
-                  Month Remaining
-                </div>
-                <div className="text-2xl font-mono font-bold text-white">
-                  {remaining.month}
-                </div>
-                <div className="text-[9px] text-gray-600 mt-1">Days</div>
-              </div>
-              <div className="bg-gray-800/30 border border-white/5 p-4 rounded text-center">
-                <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
-                  Year Remaining
-                </div>
-                <div className="text-2xl font-mono font-bold text-white">
-                  {remaining.year}
-                </div>
-                <div className="text-[9px] text-gray-600 mt-1">Days</div>
-              </div>
-              <div className="bg-gray-800/30 border border-white/5 p-4 rounded text-center">
-                <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
-                  Year Weeks
-                </div>
-                <div className="text-2xl font-mono font-bold text-cyan-400">
-                  {remaining.yearWeeks}
-                </div>
-                <div className="text-[9px] text-gray-600 mt-1">Weeks</div>
-              </div>
+              <WaveProgress
+                label="Week Remaining"
+                value={remaining.week}
+                unit="Days"
+                percentage={remaining.weekPct}
+                color="cyan"
+                delay={0}
+              />
+              <WaveProgress
+                label="Month Remaining"
+                value={remaining.month}
+                unit="Days"
+                percentage={remaining.monthPct}
+                color="blue"
+                delay={0.5}
+              />
+              <WaveProgress
+                label="Year Remaining"
+                value={remaining.year}
+                unit="Days"
+                percentage={remaining.yearPct}
+                color="purple"
+                delay={1}
+              />
+              <WaveProgress
+                label="Year Weeks"
+                value={remaining.yearWeeks}
+                unit="Weeks"
+                percentage={remaining.yearWeeksPct}
+                color="green"
+                delay={1.5}
+              />
             </div>
 
             {/* LIFE PROGRESS (Optional) */}
