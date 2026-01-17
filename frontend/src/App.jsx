@@ -120,6 +120,14 @@ const App = () => {
     setLogsUpdated((prev) => prev + 1);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("player_info");
+    setIsAuthenticated(false);
+    setUsername("");
+    setPlayerStats((prev) => ({ ...prev, birthday: null, username: "" }));
+  };
+
   if (!isAuthenticated) {
     return <TerminalLogin onLoginSuccess={handleLoginSuccess} />;
   }
@@ -165,6 +173,7 @@ const App = () => {
             playerStats={playerStats}
             onUpdateBirthday={handleUpdateBirthday}
             onClose={() => setShowSettings(false)}
+            onLogout={handleLogout}
           />
         )}
       </div>

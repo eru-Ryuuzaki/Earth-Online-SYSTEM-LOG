@@ -1,10 +1,15 @@
 import React, { useState } from "react";
-import { X, Save } from "lucide-react";
+import { X, Save, LogOut } from "lucide-react";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 import ProfileForm from "./ProfileForm";
 
-const SettingsPanel = ({ playerStats, onUpdateBirthday, onClose }) => {
+const SettingsPanel = ({
+  playerStats,
+  onUpdateBirthday,
+  onClose,
+  onLogout,
+}) => {
   const [birthday, setBirthday] = useState(playerStats.birthday || "");
   const [lifespan, setLifespan] = useState(
     playerStats.expectedLifespan !== null &&
@@ -110,6 +115,21 @@ const SettingsPanel = ({ playerStats, onUpdateBirthday, onClose }) => {
             className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-6 py-3 rounded-lg transition-colors"
           >
             CANCEL
+          </button>
+        </div>
+
+        {/* Danger Zone: Logout */}
+        <div className="mt-6 pt-4 border-t border-red-900/20">
+          <button
+            onClick={() => {
+              if (window.confirm("Are you sure you want to disconnect?")) {
+                onLogout();
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 py-2 rounded transition-colors text-xs tracking-widest font-bold"
+          >
+            <LogOut className="w-3 h-3" />
+            DISCONNECT SESSION
           </button>
         </div>
       </div>
