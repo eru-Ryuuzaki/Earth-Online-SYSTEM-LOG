@@ -13,24 +13,211 @@ export class LogsService {
     private encryptionService: EncryptionService
   ) {}
 
-  private SYSTEM_FEEDBACK_POOL = [
-    "[SYSTEM]: Entry recorded. No improvement detected.",
-    "[SYSTEM]: Survival confirmed.",
-    "[SYSTEM]: Emotional fluctuation archived.",
-    "[SYSTEM]: Timeline extended.",
-    "[SYSTEM]: Existence verified.",
-    "[SYSTEM]: Memory fragment secured.",
-  ];
+  private generateSystemFeedback(category: string, type: string, content: string): string {
+    let metadata: any = {};
+    try {
+      // Try to parse content if it's JSON to extract metadata
+      const parsed = JSON.parse(content);
+      if (parsed.metadata) metadata = parsed.metadata;
+    } catch (e) {
+      // Content might be encrypted or just string, proceed with empty metadata
+    }
+
+    const { weather, mood, energy } = metadata;
+    let candidates: string[] = [];
+
+    // --- 1. CATEGORY BASED ---
+    if (category === 'DREAM') {
+      candidates.push(
+        "[SYSTEM]: Subconscious data stream synchronized.",
+        "[SYSTEM]: REM cycle artifacts preserved.",
+        "[SYSTEM]: Abstract logic patterns analyzed.",
+        "[SYSTEM]: Neural pathway mapping complete.",
+        "[SYSTEM]: Dream sequence archived for analysis."
+      );
+    } else if (category === 'HEALTH') {
+      candidates.push(
+        "[SYSTEM]: Biological metrics updated.",
+        "[SYSTEM]: Physical status logged.",
+        "[SYSTEM]: Health integrity scan complete.",
+        "[SYSTEM]: Vital signs correlation recorded.",
+        "[SYSTEM]: Somatic data archived."
+      );
+    } else if (category === 'WORK') {
+      candidates.push(
+        "[SYSTEM]: Productivity metrics calculated.",
+        "[SYSTEM]: Task execution cycle logged.",
+        "[SYSTEM]: Output efficiency analyzed.",
+        "[SYSTEM]: Professional objective tracked.",
+        "[SYSTEM]: Workload data committed."
+      );
+    }
+
+    // --- 2. TYPE BASED ---
+    if (type === 'ERROR') {
+      candidates.push(
+        "[SYSTEM]: Anomaly detected. Diagnostic required.",
+        "[SYSTEM]: Error log persisted. Stack trace saved.",
+        "[SYSTEM]: System integrity warning.",
+        "[SYSTEM]: Exception handling protocol engaged.",
+        "[SYSTEM]: Glitch in the matrix recorded."
+      );
+    } else if (type === 'SUCCESS') {
+      candidates.push(
+        "[SYSTEM]: Operation completed successfully.",
+        "[SYSTEM]: Outcome: POSITIVE.",
+        "[SYSTEM]: Success state locked.",
+        "[SYSTEM]: Optimal performance achieved.",
+        "[SYSTEM]: Objective verified complete."
+      );
+    } else if (type === 'WARNING') {
+      candidates.push(
+        "[SYSTEM]: Cautionary flag raised.",
+        "[SYSTEM]: Potential instability noted.",
+        "[SYSTEM]: Warning threshold approached.",
+        "[SYSTEM]: Alert state: YELLOW.",
+        "[SYSTEM]: Preventive monitoring active."
+      );
+    }
+
+    // --- 3. WEATHER BASED ---
+    if (weather) {
+      if (weather === '☀️') { // Sunny
+        candidates.push(
+          "[SYSTEM]: Solar input efficiency: 100%.",
+          "[SYSTEM]: Visibility conditions: OPTIMAL.",
+          "[SYSTEM]: External temperature nominal.",
+          "[SYSTEM]: Photovoltaic potential high.",
+          "[SYSTEM]: Clear sky protocols engaged."
+        );
+      } else if (weather === '🌧️' || weather === '⛈️') { // Rain/Storm
+        candidates.push(
+          "[SYSTEM]: External precipitation detected.",
+          "[SYSTEM]: Atmospheric humidity rising.",
+          "[SYSTEM]: Acoustic rain pattern recognized.",
+          "[SYSTEM]: Environment: WET.",
+          "[SYSTEM]: Hydro-static pressure alert."
+        );
+      } else if (weather === '❄️') { // Snow
+        candidates.push(
+          "[SYSTEM]: Low temperature warning.",
+          "[SYSTEM]: Cryogenic conditions external.",
+          "[SYSTEM]: Thermal regulation active.",
+          "[SYSTEM]: Friction coefficient reduced.",
+          "[SYSTEM]: Environment: FROZEN."
+        );
+      } else if (weather === '🌑' || weather === '☁️') { // Dark/Cloudy
+        candidates.push(
+          "[SYSTEM]: Low light conditions.",
+          "[SYSTEM]: UV index low.",
+          "[SYSTEM]: Night vision recommended.",
+          "[SYSTEM]: Atmospheric density high.",
+          "[SYSTEM]: Shadow operational mode."
+        );
+      }
+    }
+
+    // --- 4. MOOD BASED ---
+    if (mood) {
+      if (['😊', '🤩', '🎉'].includes(mood)) { // Happy/Excited
+        candidates.push(
+          "[SYSTEM]: User morale operating at peak efficiency.",
+          "[SYSTEM]: Positive emotional state locked.",
+          "[SYSTEM]: Dopamine receptors active.",
+          "[SYSTEM]: Optimal psychological condition verified.",
+          "[SYSTEM]: Mood metric: EXCELLENT."
+        );
+      } else if (['😢', '😞', '☹️'].includes(mood)) { // Sad
+        candidates.push(
+          "[SYSTEM]: Serotonin deficiency noted.",
+          "[SYSTEM]: Emotional support protocol standby.",
+          "[SYSTEM]: Resilience check required.",
+          "[SYSTEM]: Empathy module initializing...",
+          "[SYSTEM]: Psychological dampening detected."
+        );
+      } else if (['😡', '😠'].includes(mood)) { // Angry
+        candidates.push(
+          "[SYSTEM]: Cortisol levels elevated.",
+          "[SYSTEM]: Aggression dampening recommended.",
+          "[SYSTEM]: Stress threshold exceeded.",
+          "[SYSTEM]: Cooling logic applied.",
+          "[SYSTEM]: Emotional volatility high."
+        );
+      } else if (['🤔', '🧘'].includes(mood)) { // Thinking/Zen
+        candidates.push(
+          "[SYSTEM]: Cognitive processing intensified.",
+          "[SYSTEM]: Neural network training in progress.",
+          "[SYSTEM]: Focus state: DEEP.",
+          "[SYSTEM]: Analytical subroutine running.",
+          "[SYSTEM]: Mental clarity optimization."
+        );
+      } else if (['😴', '😐'].includes(mood)) { // Sleepy/Neutral
+        candidates.push(
+          "[SYSTEM]: Background processes idling.",
+          "[SYSTEM]: Status: STABLE/NEUTRAL.",
+          "[SYSTEM]: Low variance detected.",
+          "[SYSTEM]: Maintenance mode ready.",
+          "[SYSTEM]: Equilibrium established."
+        );
+      }
+    }
+
+    // --- 5. ENERGY BASED ---
+    if (energy !== undefined && energy !== null) {
+      const eVal = parseInt(energy);
+      if (!isNaN(eVal)) {
+        if (eVal < 30) {
+          candidates.push(
+            "[SYSTEM]: Low power warning. Recharge recommended.",
+            "[SYSTEM]: Energy reserves critical. Conservation mode.",
+            "[SYSTEM]: System fatigue detected.",
+            "[SYSTEM]: Metabolic output reduced.",
+            "[SYSTEM]: Suggesting hibernation cycle."
+          );
+        } else if (eVal > 80) {
+          candidates.push(
+            "[SYSTEM]: Power output maximum.",
+            "[SYSTEM]: Kinetic potential at 100%.",
+            "[SYSTEM]: High energy state confirmed.",
+            "[SYSTEM]: System overclocking active.",
+            "[SYSTEM]: Ready for heavy processing loads."
+          );
+        }
+      }
+    }
+
+    // --- FALLBACK POOL ---
+    const genericPool = [
+      "[SYSTEM]: Entry recorded. No improvement detected.",
+      "[SYSTEM]: Survival confirmed.",
+      "[SYSTEM]: Emotional fluctuation archived.",
+      "[SYSTEM]: Timeline extended.",
+      "[SYSTEM]: Existence verified.",
+      "[SYSTEM]: Memory fragment secured.",
+      "[SYSTEM]: Data integrity verified.",
+      "[SYSTEM]: Log committed to core memory.",
+      "[SYSTEM]: Chronological marker set.",
+      "[SYSTEM]: Reality anchor updated."
+    ];
+
+    // If we have candidates, shuffle and pick one.
+    // If candidates list is short (< 3), mix in some generics to add variety.
+    if (candidates.length < 3) {
+      candidates = [...candidates, ...genericPool];
+    }
+
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
 
   async create(userId: string, content: string, status: SystemStatus, category: string, type: string, logDate?: Date) {
     // 1. Calculate Gamification Rewards
     let exp = 10; // Base EXP
     if (content && content.length > 50) exp += 20;
-    if (status === SystemStatus.DEGRADED || status === SystemStatus.OVERLOADED) exp += 15; // Reward for enduring hard times
-    if (type === 'ERROR' || type === 'CRITICAL') exp += 10; // Surviving errors
+    if (status === SystemStatus.DEGRADED || status === SystemStatus.OVERLOADED) exp += 15;
+    if (type === 'ERROR' || type === 'CRITICAL') exp += 10;
 
-    // 2. Select Feedback
-    const feedback = this.SYSTEM_FEEDBACK_POOL[Math.floor(Math.random() * this.SYSTEM_FEEDBACK_POOL.length)];
+    // 2. Select Feedback (Dynamic)
+    const feedback = this.generateSystemFeedback(category, type, content);
 
     // 3. Encrypt Content
     const encryptedContent = this.encryptionService.encrypt(content);
