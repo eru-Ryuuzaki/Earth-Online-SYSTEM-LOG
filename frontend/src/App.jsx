@@ -44,7 +44,10 @@ const App = () => {
         setPlayerStats((prev) => ({
           ...prev,
           birthday: savedPlayer.birthday,
-          expectedLifespan: savedPlayer.expectedLifespan || 100,
+          expectedLifespan:
+            savedPlayer.expectedLifespan !== undefined
+              ? savedPlayer.expectedLifespan
+              : 100,
         }));
       }
     }
@@ -63,7 +66,9 @@ const App = () => {
         exp: playerData.exp || prev.exp,
         birthday: playerData.birthday || null,
         expectedLifespan:
-          playerData.expectedLifespan || prev.expectedLifespan || 100,
+          playerData.expectedLifespan !== undefined
+            ? playerData.expectedLifespan
+            : prev.expectedLifespan || 100,
       }));
     }
     setIsAuthenticated(true);
@@ -128,10 +133,7 @@ const App = () => {
         <div className="shrink-0">
           <HUDStats
             playerStats={playerStats}
-            buffs={buffs}
-            debuffs={debuffs}
             getPlayerAge={getPlayerAge}
-            getSecondsSinceBirth={getSecondsSinceBirth}
             refreshTrigger={logsUpdated}
             onLogClick={setSelectedLog}
           />

@@ -38,16 +38,17 @@ const ProfileForm = ({
           value={lifespan}
           onChange={(e) => setLifespan(e.target.value)}
           className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-cyan-300 md:text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all placeholder-gray-700 font-mono"
-          placeholder="Ex: 80 (Leave empty for unbounded)"
+          placeholder="Ex: 100 (Leave empty for unbounded)"
         />
-        
+
         {error ? (
           <div className="text-xs text-red-400 mt-2 font-mono border-l-2 border-red-500 pl-2 text-left">
             [ERROR]: {error}
           </div>
         ) : (
           <p className="text-[9px] md:text-xs text-gray-500 mt-2 font-mono text-left italic">
-            * Defines system warranty period. Leave blank to disable decay tracking.
+            * Defines system warranty period. Leave blank to disable decay
+            tracking.
           </p>
         )}
       </div>

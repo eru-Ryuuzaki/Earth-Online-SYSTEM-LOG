@@ -5,8 +5,6 @@ import { useSystemLogs } from "../hooks/useSystemLogs";
 
 const HUDStats = ({
   playerStats,
-  buffs,
-  debuffs,
   refreshTrigger,
   getPlayerAge,
   onLogClick,

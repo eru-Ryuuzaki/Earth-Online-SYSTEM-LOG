@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { X, Save } from "lucide-react";
+import axios from "axios";
+import { API_BASE_URL } from "../config";
 import ProfileForm from "./ProfileForm";
 
 const SettingsPanel = ({ playerStats, onUpdateBirthday, onClose }) => {
@@ -12,7 +14,7 @@ const SettingsPanel = ({ playerStats, onUpdateBirthday, onClose }) => {
   );
   const [error, setError] = useState("");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setError("");
     let finalLifespan = null;
     if (lifespan) {
@@ -26,11 +28,50 @@ const SettingsPanel = ({ playerStats, onUpdateBirthday, onClose }) => {
       finalLifespan = parsed;
     }
 
-    onUpdateBirthday({
-      birthday,
-      expectedLifespan: finalLifespan,
-    });
-    onClose();
+    try {
+      const token = localStorage.getItem("access_token");
+      // Use playerStats.username directly or fetch it if needed
+      // Assuming username is not passed here but we can rely on parent's callback to handle API
+      // OR we should call API here.
+      // Looking at BirthdayModal, it calls API directly.
+      // Looking at App.jsx, handleUpdateBirthday just updates state.
+      // THIS IS THE ISSUE: SettingsPanel calls onUpdateBirthday which only updates local state.
+      // It does NOT call the backend.
+      // BirthdayModal DOES call the backend.
+
+      // We need to call the API here to persist changes.
+      // However, SettingsPanel doesn't have the username prop.
+      // We should check if we can get it from playerStats (not there) or localStorage.
+
+      const storedPlayer = JSON.parse(
+        localStorage.getItem("player_info") || "{}"
+      );
+      const username = storedPlayer.username;
+
+      if (username && token) {
+        await axios.patch(
+          `${API_BASE_URL}/player/${username}/profile`,
+          { birthday, expectedLifespan: finalLifespan },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        // Update local storage to persist across reloads immediately
+        storedPlayer.birthday = birthday;
+        storedPlayer.expectedLifespan = finalLifespan;
+        localStorage.setItem("player_info", JSON.stringify(storedPlayer));
+      }
+
+      onUpdateBirthday({
+        birthday,
+        expectedLifespan: finalLifespan,
+      });
+      onClose();
+    } catch (err) {
+      console.error("Failed to save settings:", err);
+      setError("Failed to save configuration. Please try again.");
+    }
   };
 
   return (

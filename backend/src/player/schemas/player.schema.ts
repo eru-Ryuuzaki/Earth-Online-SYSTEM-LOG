@@ -39,6 +39,9 @@ export class Player {
   @Prop()
   birthday: Date;
 
+  @Prop({ default: 100, required: false })
+  expectedLifespan: number;
+
   @Prop([String])
   buffs: string[]; // Simplification: just store buff IDs or names
 }
