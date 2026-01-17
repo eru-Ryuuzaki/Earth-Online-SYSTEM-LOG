@@ -209,7 +209,15 @@ export class LogsService {
     return candidates[Math.floor(Math.random() * candidates.length)];
   }
 
-  async create(userId: string, content: string, status: SystemStatus, category: string, type: string, logDate?: Date) {
+  async create(
+    userId: string,
+    content: string,
+    status: SystemStatus,
+    category: string,
+    type: string,
+    logDate?: Date,
+    metadata?: { weather?: string; mood?: string; energy?: number; icon?: string }
+  ) {
     // 1. Calculate Gamification Rewards
     let exp = 10; // Base EXP
     if (content && content.length > 50) exp += 20;
@@ -222,6 +230,18 @@ export class LogsService {
     // 3. Encrypt Content
     const encryptedContent = this.encryptionService.encrypt(content);
 
+    // 4. Extract metadata if not provided explicitly but available in content JSON
+    let finalMetadata = { ...metadata };
+    if (!metadata) {
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed.metadata) {
+          finalMetadata = { ...parsed.metadata };
+        }
+        // Try to find icon in sysTrace if needed, or rely on passed metadata
+      } catch (e) {}
+    }
+
     const newLog = new this.logModel({
       userId,
       content: encryptedContent,
@@ -231,23 +251,127 @@ export class LogsService {
       systemFeedback: feedback,
       expGranted: exp,
       logDate: logDate || new Date(),
+      weather: finalMetadata.weather,
+      mood: finalMetadata.mood,
+      energy: finalMetadata.energy,
+      icon: finalMetadata.icon,
     });
 
     return newLog.save();
   }
 
-  async findAll(userId: string, limit: number = 20, offset: number = 0) {
-    const logs = await this.logModel.find({ userId })
+  async findAll(
+    userId: string,
+    limit: number = 20,
+    offset: number = 0,
+    filters?: {
+      category?: string;
+      type?: string;
+      weather?: string;
+      mood?: string;
+      energyLevel?: number;
+      energyOp?: 'gt' | 'lt' | 'eq'; // greater than, less than
+      icon?: string;
+      search?: string; // keyword search
+    }
+  ) {
+    const query: any = { userId };
+
+    if (filters) {
+      if (filters.category) query.category = filters.category;
+      if (filters.type) query.type = filters.type;
+      if (filters.weather) query.weather = filters.weather;
+      if (filters.mood) query.mood = filters.mood;
+      if (filters.icon) query.icon = filters.icon;
+
+      if (filters.energyLevel !== undefined) {
+        // Convert to number because query param might be string
+        const eLevel = Number(filters.energyLevel);
+        if (!isNaN(eLevel)) {
+          if (filters.energyOp === 'gt') query.energy = { $gte: eLevel };
+          else if (filters.energyOp === 'lt') query.energy = { $lte: eLevel };
+          else query.energy = eLevel;
+        }
+      }
+
+      if (filters.search) {
+        // If searching by keyword, we CANNOT do it via DB query effectively because content is encrypted.
+        // STRATEGY: 
+        // 1. Fetch ALL logs matching other filters (category, etc.) for this user.
+        // 2. Decrypt in memory.
+        // 3. Filter by keyword.
+        // 4. Manual pagination.
+        
+        // Remove 'limit' and 'offset' from initial DB fetch, but keep other filters
+        const allCandidates = await this.logModel
+          .find(query)
+          .sort({ logDate: -1, createdAt: -1 })
+          .exec();
+
+        const keyword = filters.search.toLowerCase();
+
+        const filtered = allCandidates.filter(log => {
+          let content = "";
+          try {
+            content = this.encryptionService.decrypt(log.content).toLowerCase();
+          } catch (e) {
+            content = "";
+          }
+
+          // Check if keyword exists in decrypted content OR metadata
+          // (Metadata checks here are redundant if we kept them in DB query, but necessary if we removed $or)
+          // Actually, we haven't added $or to 'query' yet in this block.
+          return (
+            content.includes(keyword) ||
+            log.systemFeedback?.toLowerCase().includes(keyword) ||
+            log.category?.toLowerCase().includes(keyword) ||
+            log.type?.toLowerCase().includes(keyword) ||
+            log.weather?.includes(keyword) ||
+            log.mood?.includes(keyword)
+          );
+        });
+
+        // Apply pagination manually
+        const paged = filtered.slice(offset, offset + limit);
+
+        return paged.map(log => {
+          const logObj = log.toObject();
+          try {
+            logObj.content = this.encryptionService.decrypt(logObj.content);
+          } catch (e) {}
+          return logObj;
+        });
+      }
+    }
+
+    const logs = await this.logModel
+      .find(query)
       .sort({ logDate: -1, createdAt: -1 })
       .skip(offset)
       .limit(limit)
       .exec();
 
-    return logs.map(log => {
+    return logs.map((log) => {
       const logObj = log.toObject();
-      logObj.content = this.encryptionService.decrypt(logObj.content);
+      try {
+        logObj.content = this.encryptionService.decrypt(logObj.content);
+      } catch (e) {
+        // If decryption fails, return as is or error
+      }
       return logObj;
     });
+  }
+
+  async deleteLog(userId: string, logId: string) {
+    return this.logModel.findOneAndDelete({ _id: logId, userId }).exec();
+  }
+
+  async updateLog(userId: string, logId: string, updates: any) {
+    // If updating content, encrypt it
+    if (updates.content) {
+      updates.content = this.encryptionService.encrypt(updates.content);
+    }
+    return this.logModel.findOneAndUpdate({ _id: logId, userId }, updates, { new: true }).exec();
   }
 
   async getStats(userId: string) {

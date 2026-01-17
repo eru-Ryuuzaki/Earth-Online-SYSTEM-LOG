@@ -41,6 +41,19 @@ export class SystemLog {
 
   @Prop({ default: Date.now })
   logDate: Date;
+
+  // Metadata fields for filtering
+  @Prop()
+  weather: string;
+
+  @Prop()
+  mood: string;
+
+  @Prop()
+  energy: number;
+
+  @Prop()
+  icon: string;
 }
 
 export const LogSchema = SchemaFactory.createForClass(SystemLog);

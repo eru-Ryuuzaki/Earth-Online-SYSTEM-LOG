@@ -11,31 +11,90 @@ import { useToast } from "../../contexts/ToastContext";
 const WEATHER_OPTS = ["☀️", "☁️", "🌧️", "⛈️", "❄️", "🌪️", "🌫️", "🌑"];
 const MOOD_OPTS = ["😊", "😐", "😢", "😡", "🤔", "😴", "🤩", "🤯", "🧘"];
 
-const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
+const SystemLogCreate = ({
+  onCancel,
+  onSave,
+  playerStats,
+  initialData = null,
+}) => {
   const { t, i18n } = useTranslation();
   const { addToast } = useToast();
   const [category, setCategory] = useState(
-    Object.keys(logTemplates)[0] || "system",
+    initialData?.category || Object.keys(logTemplates)[0] || "system",
   );
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [type, setType] = useState("INFO");
-  const [message, setMessage] = useState("");
-  const [detailContent, setDetailContent] = useState(""); // Detailed Diary
-  const [icon, setIcon] = useState("✅");
-  const [isCustomMessage, setIsCustomMessage] = useState(false);
+  const [type, setType] = useState(initialData?.type || "INFO");
+
+  // Extract message from initialData content if needed
+  // initialData.content is likely the JSON string or object depending on how it's passed
+  // The list view parses it. Let's assume initialData is the PARSED object from the list.
+
+  const parseInitialContent = () => {
+    if (!initialData) return { msg: "", detail: "", icon: "✅" };
+    try {
+      const c =
+        typeof initialData.content === "string"
+          ? JSON.parse(initialData.content)
+          : initialData.content;
+      // Parse sysTrace to get message and icon?
+      // sysTrace format: `[Time][Frame][CAT]TYPE: ICON Message`
+      // It's hard to parse back perfectly.
+      // But we have `metadata` now!
+      // Wait, metadata might not be in old logs.
+
+      // Let's try to extract from sysTrace if possible
+      let msg = "";
+      let icon = "✅";
+      if (c.sysTrace) {
+        const parts = c.sysTrace.split(": ");
+        if (parts.length > 1) {
+          const contentPart = parts.slice(1).join(": "); // "ICON Message"
+          // Assume first char is icon (emoji)
+          // Simple split by space
+          const firstSpace = contentPart.indexOf(" ");
+          if (firstSpace > 0) {
+            icon = contentPart.substring(0, firstSpace);
+            msg = contentPart.substring(firstSpace + 1);
+          } else {
+            msg = contentPart;
+          }
+        }
+      }
+
+      return {
+        msg: msg,
+        detail: c.body || "",
+        icon: c.metadata?.icon || initialData.icon || icon, // Prefer metadata icon
+        weather: c.metadata?.weather || initialData.weather || "☀️",
+        mood: c.metadata?.mood || initialData.mood || "😐",
+        energy: c.metadata?.energy || initialData.energy || 80,
+        date: c.logDate || initialData.logDate,
+        time: c.logTime || "",
+      };
+    } catch (e) {
+      return { msg: "", detail: "", icon: "✅" };
+    }
+  };
+
+  const initialValues = parseInitialContent();
+
+  const [message, setMessage] = useState(initialValues.msg);
+  const [detailContent, setDetailContent] = useState(initialValues.detail); // Detailed Diary
+  const [icon, setIcon] = useState(initialValues.icon);
+  const [isCustomMessage, setIsCustomMessage] = useState(!!initialData); // If editing, assume custom to avoid overwriting
   const [isCustomIcon, setIsCustomIcon] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Metadata
-  const [weather, setWeather] = useState("☀️");
-  const [mood, setMood] = useState("😐");
-  const [energy, setEnergy] = useState(80);
+  const [weather, setWeather] = useState(initialValues.weather || "☀️");
+  const [mood, setMood] = useState(initialValues.mood || "😐");
+  const [energy, setEnergy] = useState(initialValues.energy || 80);
 
   // Live Data & Custom Date
   const [currentTime, setCurrentTime] = useState("");
   const [currentFrame, setCurrentFrame] = useState(0);
-  const [customDate, setCustomDate] = useState(""); // YYYY-MM-DD
-  const [customTime, setCustomTime] = useState(""); // HH:MM
+  const [customDate, setCustomDate] = useState(initialValues.date || ""); // YYYY-MM-DD
+  const [customTime, setCustomTime] = useState(initialValues.time || ""); // HH:MM
 
   const categories = Object.keys(logTemplates);
   const availableTemplates = logTemplates[category] || [];
@@ -178,7 +237,15 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
     // Let's keep it static to the selected minute for stability.
   }, [playerStats, customDate, customTime]);
 
+  const isFirstRender = React.useRef(true);
+
   useEffect(() => {
+    // Skip reset on mount if editing (initialData present)
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (initialData) return;
+    }
+
     const templates = logTemplates[category] || [];
     const types = [...new Set(templates.map((t) => t.type))];
     if (types.length > 0) {
@@ -200,7 +267,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
       setMessage("");
       setIcon("📝");
     }
-  }, [category, t, i18n.language]); // Added dependencies to auto-translate when language changes
+  }, [category, t, i18n.language, initialData]); // Added dependencies to auto-translate when language changes
 
   useEffect(() => {
     // This effect handles type changes that are NOT caused by category changes
@@ -285,7 +352,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
     const payload = JSON.stringify({
       sysTrace: `[${currentTime}][Frame ${currentFrame}][${category.toUpperCase()}]${type}: ${icon} ${message}`,
       body: detailContent,
-      metadata: { weather, mood, energy },
+      metadata: { weather, mood, energy, icon },
       // Store the raw date string to ensure calendar displays exactly what user picked (ignoring timezone shifts)
       logDate: customDate,
       logTime: timeStr,
@@ -293,7 +360,13 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
     });
 
     setTimeout(() => {
-      onSave(payload, type, finalDate);
+      // Pass category and metadata explicitly for backend indexing
+      onSave(payload, type, finalDate, category, {
+        weather,
+        mood,
+        energy,
+        icon,
+      });
       setIsSubmitting(false);
     }, 800);
   };
@@ -349,7 +422,7 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
       <div className="flex items-center justify-between mb-6 border-b border-cyan-500/20 pb-4 shrink-0">
         <div>
           <h2 className="text-lg font-bold text-cyan-500 tracking-wider">
-            {t("logs.new_log")}
+            {initialData ? "EDIT SYSTEM LOG" : t("logs.new_log")}
           </h2>
           <div className="flex gap-4 text-xs font-mono text-cyan-500/60 mt-1">
             <span>{t("logs.mode")}</span>
@@ -546,7 +619,11 @@ const SystemLogCreate = ({ onCancel, onSave, playerStats }) => {
             ${isSubmitting ? "animate-pulse" : ""}
             `}
           >
-            {isSubmitting ? t("logs.uploading") : t("logs.commit_log")}
+            {isSubmitting
+              ? t("logs.uploading")
+              : initialData
+                ? "UPDATE LOG"
+                : t("logs.commit_log")}
           </button>
         </div>
       </div>

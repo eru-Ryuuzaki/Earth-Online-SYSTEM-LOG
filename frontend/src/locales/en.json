@@ -52,7 +52,28 @@
       "invalid_date": "Invalid date/time selection detected.",
       "future_date": "Temporal Paradox: Future date selection invalid.",
       "birth_date": "Timeline Error: Date precedes user initialization (Spawn Date).",
-      "success_save": "Log entry successfully committed to core memory."
+      "success_save": "Log entry successfully committed to core memory.",
+      "delete_success": "Log entry deleted successfully.",
+      "update_success": "Log entry updated successfully."
+    },
+    "delete_dialog": {
+      "title": "DELETE LOG ENTRY",
+      "message": "This action will permanently erase the selected memory block. This data cannot be recovered. Are you sure you want to proceed?",
+      "confirm": "DELETE",
+      "cancel": "CANCEL"
+    },
+    "filter": {
+      "button": "FILTER",
+      "search_placeholder": "Search logs (keyword, category, type)...",
+      "label_category": "Category",
+      "label_type": "Type",
+      "label_energy": "Energy Level",
+      "label_environment": "Environment",
+      "all_categories": "ALL CATEGORIES",
+      "all_types": "ALL TYPES",
+      "placeholder_value": "Value (0-100)",
+      "option_weather": "Weather",
+      "option_mood": "Mood"
     },
     "title": "SYSTEM LOGS",
     "live_feed": "LIVE FEED",

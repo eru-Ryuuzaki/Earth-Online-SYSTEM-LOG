@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SystemLogCreate from "./SystemLogCreate";
+import SystemLogFilter from "./SystemLogFilter";
+import SystemConfirmDialog from "../SystemConfirmDialog";
 import { useSystemLogs } from "../../hooks/useSystemLogs";
 import {
   Terminal,
@@ -9,8 +11,11 @@ import {
   BookOpen,
   Settings,
   ArrowLeft,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useToast } from "../../contexts/ToastContext";
 
 const SystemLogModule = ({
   onToggleSettings,
@@ -21,23 +26,83 @@ const SystemLogModule = ({
   onSelectLog: setSelectedLog,
 }) => {
   const { t } = useTranslation();
+  const { addToast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
-  const { logs, addLog, refreshLogs, loading } = useSystemLogs();
+  const [editingLog, setEditingLog] = useState(null);
+  const [filters, setFilters] = useState({});
 
-  const handleSave = async (content, type) => {
-    const success = await addLog(content, type);
+  // Delete confirmation state
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const { logs, addLog, refreshLogs, deleteLog, updateLog, loading } =
+    useSystemLogs();
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    refreshLogs(newFilters);
+  };
+
+  const handleSave = async (content, type, date, category, metadata) => {
+    let success = false;
+    if (editingLog) {
+      success = await updateLog(editingLog._id, {
+        content,
+        type,
+        logDate: date,
+        category,
+        metadata,
+      });
+      if (success) addToast("Log updated successfully", "SUCCESS");
+    } else {
+      success = await addLog(content, type, date, category, metadata);
+      if (success) {
+        if (onLogAdded) onLogAdded();
+        try {
+          if (metadata && onUpdateVitals) {
+            // Example vital update logic
+            onUpdateVitals({
+              hp: parseInt(metadata.energy) || playerStats.hp,
+            });
+          }
+        } catch (e) {}
+        addToast(t("logs.toasts.success_save"), "SUCCESS");
+      }
+    }
+
     if (success) {
       setIsCreating(false);
-      if (onLogAdded) onLogAdded(); // Notify parent that a log was added
-      try {
-        const data = JSON.parse(content);
-        if (data.metadata && onUpdateVitals) {
-          onUpdateVitals({
-            hp: parseInt(data.metadata.energy) || playerStats.hp,
-          });
-        }
-      } catch (e) {}
+      setEditingLog(null);
+      refreshLogs(filters); // Refresh with current filters
     }
+  };
+
+  const handleDeleteClick = (e, id) => {
+    e.stopPropagation();
+    setDeleteId(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    const success = await deleteLog(deleteId);
+    if (success) {
+      addToast("Log deleted successfully", "SUCCESS");
+      if (selectedLog?._id === deleteId) setSelectedLog(null);
+    }
+    setDeleteId(null);
+  };
+
+  const handleEdit = (e, log) => {
+    e.stopPropagation();
+    setEditingLog(log);
+    setIsCreating(true);
+    setSelectedLog(null); // Deselect to show edit form
+  };
+
+  const handleCancelCreate = () => {
+    setIsCreating(false);
+    setEditingLog(null);
   };
 
   // If selectedLog is provided via props, we don't need internal state for it.
@@ -251,6 +316,15 @@ const SystemLogModule = ({
 
   return (
     <div className="max-w-7xl mx-auto w-full h-full md:h-[600px] bg-gray-950/95 border border-cyan-500/20 rounded-xl text-white overflow-hidden font-sans relative mb-0 md:mb-6 backdrop-blur-xl shadow-[0_0_40px_rgba(8,145,178,0.1)] flex flex-col">
+      <SystemConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={confirmDelete}
+        title="DELETE LOG ENTRY"
+        message="This action will permanently erase the selected memory block. This data cannot be recovered. Are you sure you want to proceed?"
+        confirmText="DELETE"
+        type="DANGER"
+      />
       {/* Header */}
       <div className="h-14 border-b border-white/10 flex items-center justify-between px-4 md:px-6 bg-black/40 shrink-0">
         <div className="flex items-center gap-3">
@@ -290,6 +364,7 @@ const SystemLogModule = ({
               <button
                 onClick={() => {
                   setIsCreating(true);
+                  setEditingLog(null);
                   setSelectedLog(null);
                 }}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-md transition-all bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/50"
@@ -299,7 +374,7 @@ const SystemLogModule = ({
               </button>
               <div className="w-px bg-white/10 mx-1 my-1"></div>
               <button
-                onClick={refreshLogs}
+                onClick={() => refreshLogs(filters)}
                 className={`flex items-center justify-center w-8 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors ${
                   loading ? "animate-spin text-cyan-400" : ""
                 }`}
@@ -324,55 +399,84 @@ const SystemLogModule = ({
         <div
           className={`
             ${selectedLog || isCreating ? "hidden md:flex" : "flex"} 
-            w-full md:w-1/3 border-r border-white/10 overflow-y-auto custom-scrollbar bg-black/20 flex-col
+            w-full md:w-1/3 border-r border-white/10 overflow-hidden bg-black/20 flex-col
         `}
         >
-          {logs.length === 0 && !loading ? (
-            <div className="flex flex-col items-center justify-center flex-1 text-gray-300 font-mono gap-4 p-6">
-              <Terminal className="w-8 h-8 text-cyan-400" />
-              <div className="text-center">
-                <div className="text-sm text-gray-200 font-bold">
-                  {t("logs.no_logs")}
-                </div>
-                <div className="text-xs text-gray-400 mt-2">
-                  Initialize your first entry to begin tracking.
-                </div>
-              </div>
-            </div>
-          ) : (
-            logs.map((log) => (
-              <div
-                key={log._id || log.id}
-                onClick={() => {
-                  setSelectedLog(log);
-                  setIsCreating(false);
-                }}
-                className={`p-4 border-b border-white/5 cursor-pointer hover:bg-white/5 transition-all group relative ${
-                  selectedLog?._id === log._id && !isCreating
-                    ? "bg-cyan-900/20 border-l-4 border-l-cyan-500"
-                    : "border-l-4 border-l-transparent"
-                }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] font-mono text-gray-500 group-hover:text-cyan-400 transition-colors">
-                    {new Date(
-                      log.createdAt || log.timestamp,
-                    ).toLocaleDateString()}
-                  </span>
-                  <span
-                    className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${getTypeColor(
-                      log.type,
-                    )}`}
-                  >
-                    {log.type}
-                  </span>
-                </div>
-                <div className="min-h-[1.5em]">
-                  {getLogSummary(log.content)}
+          {/* Filter Section */}
+          <div className="p-4 border-b border-white/5 bg-black/40 relative z-40">
+            <SystemLogFilter
+              filters={filters}
+              onFilterChange={handleFilterChange}
+            />
+          </div>
+
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            {logs.length === 0 && !loading ? (
+              <div className="flex flex-col items-center justify-center flex-1 text-gray-300 font-mono gap-4 p-6 h-full">
+                <Terminal className="w-8 h-8 text-cyan-400" />
+                <div className="text-center">
+                  <div className="text-sm text-gray-200 font-bold">
+                    {t("logs.no_logs")}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-2">
+                    Initialize your first entry to begin tracking.
+                  </div>
                 </div>
               </div>
-            ))
-          )}
+            ) : (
+              logs.map((log) => (
+                <div
+                  key={log._id || log.id}
+                  onClick={() => {
+                    setSelectedLog(log);
+                    setIsCreating(false);
+                    setEditingLog(null);
+                  }}
+                  className={`p-4 border-b border-white/5 cursor-pointer hover:bg-white/5 transition-all group relative ${
+                    selectedLog?._id === log._id && !isCreating
+                      ? "bg-cyan-900/20 border-l-4 border-l-cyan-500"
+                      : "border-l-4 border-l-transparent"
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] font-mono text-gray-500 group-hover:text-cyan-400 transition-colors">
+                      {new Date(getLogDate(log)).toLocaleDateString()}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${getTypeColor(
+                          log.type,
+                        )}`}
+                      >
+                        {log.type}
+                      </span>
+
+                      {/* Actions: Only show for logs owned by user (implied) or all if admin. Assume all for now */}
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => handleEdit(e, log)}
+                          className="p-1 hover:text-cyan-400 text-gray-500 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteClick(e, log._id)}
+                          className="p-1 hover:text-red-400 text-gray-500 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="min-h-[1.5em]">
+                    {getLogSummary(log.content)}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         {/* RIGHT PANEL: DETAIL / CREATE / EMPTY */}
@@ -384,9 +488,10 @@ const SystemLogModule = ({
         >
           {isCreating ? (
             <SystemLogCreate
-              onCancel={() => setIsCreating(false)}
+              onCancel={handleCancelCreate}
               onSave={handleSave}
               playerStats={playerStats}
+              initialData={editingLog}
             />
           ) : selectedLog ? (
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 font-mono animate-in slide-in-from-right duration-300">
