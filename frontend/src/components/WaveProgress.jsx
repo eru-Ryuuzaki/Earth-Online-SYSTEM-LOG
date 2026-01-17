@@ -134,7 +134,7 @@ const WaveProgress = ({
             {label}
           </div>
           <div
-            className={`text-3xl font-mono font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex items-baseline gap-1 ${theme.glow}`}
+            className={`text-2xl sm:text-3xl font-mono font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex items-baseline gap-1 ${theme.glow}`}
             style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}
           >
             {value}

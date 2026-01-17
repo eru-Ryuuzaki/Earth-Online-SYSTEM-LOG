@@ -133,7 +133,7 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 text-white p-6 font-mono overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 text-white p-3 md:p-6 font-mono overflow-hidden flex flex-col">
       {isAuthenticated && !isBooting && !playerStats.birthday && (
         <BirthdayModal username={username} onComplete={handleUpdateBirthday} />
       )}

@@ -129,7 +129,7 @@ const HUDStats = ({
   const ageProgress = getAgeProgress();
 
   return (
-    <div className="max-w-7xl mx-auto mb-6 px-4 md:px-0">
+    <div className="max-w-7xl mx-auto mb-4 md:mb-6">
       <div className="bg-black/40 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-2xl">
         {/* Top Bar: Identity & Runtime */}
         <div className="mb-4 pb-3 border-b border-cyan-500/20 flex flex-col md:flex-row md:items-center justify-between gap-2">
@@ -211,7 +211,7 @@ const HUDStats = ({
             </div>
 
             {/* TEMPORAL METRICS (Wave Countdown) */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 gap-3">
               <WaveProgress
                 label="Week Remaining"
                 value={remaining.week}

@@ -396,7 +396,7 @@ const LogCalendar = ({ logs = [], onLogClick }) => {
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1 flex-1 content-start">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1 flex-1 content-start">
         {renderDays()}
       </div>
     </div>
