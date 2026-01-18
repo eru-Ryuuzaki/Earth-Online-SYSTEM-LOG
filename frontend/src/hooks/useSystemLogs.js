@@ -61,7 +61,7 @@ export const useSystemLogs = () => {
   }, [fetchLogs]);
 
   // Updated addLog to accept full log object
-  const addLog = async (
+  const addLog = useCallback(async (
     content,
     type,
     logDate,
@@ -94,9 +94,9 @@ export const useSystemLogs = () => {
       console.error("Failed to add log", err);
       return false;
     }
-  };
+  }, [fetchLogs]);
 
-  const deleteLog = async (id) => {
+  const deleteLog = useCallback(async (id) => {
     const token = localStorage.getItem("access_token");
     if (!token) return false;
     try {
@@ -109,9 +109,9 @@ export const useSystemLogs = () => {
       console.error("Failed to delete log", err);
       return false;
     }
-  };
+  }, []);
 
-  const updateLog = async (id, updates) => {
+  const updateLog = useCallback(async (id, updates) => {
     const token = localStorage.getItem("access_token");
     if (!token) return false;
     try {
@@ -127,7 +127,7 @@ export const useSystemLogs = () => {
       console.error("Failed to update log", err);
       return false;
     }
-  };
+  }, []);
 
   return {
     logs,

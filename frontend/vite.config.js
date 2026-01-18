@@ -12,6 +12,15 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    sourcemap: true,
+    sourcemap: false, // 生产环境关闭sourcemap减少体积
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom", "react-i18next", "i18next", "axios"],
+          ui: ["lucide-react"],
+        },
+      },
+    },
   },
 });

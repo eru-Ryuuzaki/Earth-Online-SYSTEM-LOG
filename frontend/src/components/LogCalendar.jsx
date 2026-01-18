@@ -337,4 +337,4 @@ const LogCalendar = ({ logs = [], onLogClick }) => {
   );
 };
 
-export default LogCalendar;
+export default React.memo(LogCalendar);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import SystemConfirmDialog from "../SystemConfirmDialog";
 import { useSystemLogs } from "../../hooks/useSystemLogs";
 import {
@@ -36,52 +36,69 @@ const SystemLogModule = ({
   const { logs, addLog, refreshLogs, deleteLog, updateLog, loading } =
     useSystemLogs();
 
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-    refreshLogs(newFilters);
-  };
+  const handleFilterChange = useCallback(
+    (newFilters) => {
+      setFilters(newFilters);
+      refreshLogs(newFilters);
+    },
+    [refreshLogs],
+  );
 
-  const handleSave = async (content, type, date, category, metadata) => {
-    let success = false;
-    if (editingLog) {
-      success = await updateLog(editingLog._id, {
-        content,
-        type,
-        logDate: date,
-        category,
-        metadata,
-      });
-      if (success) addToast(t("logs.toasts.update_success"), "SUCCESS");
-    } else {
-      success = await addLog(content, type, date, category, metadata);
-      if (success) {
-        if (onLogAdded) onLogAdded();
-        try {
-          if (metadata && onUpdateVitals) {
-            onUpdateVitals({
-              hp: parseInt(metadata.energy) || playerStats.hp,
-            });
-          }
-        } catch (e) {}
-        addToast(t("logs.toasts.success_save"), "SUCCESS");
+  const handleSave = useCallback(
+    async (content, type, date, category, metadata) => {
+      let success = false;
+      if (editingLog) {
+        success = await updateLog(editingLog._id, {
+          content,
+          type,
+          logDate: date,
+          category,
+          metadata,
+        });
+        if (success) addToast(t("logs.toasts.update_success"), "SUCCESS");
+      } else {
+        success = await addLog(content, type, date, category, metadata);
+        if (success) {
+          if (onLogAdded) onLogAdded();
+          try {
+            if (metadata && onUpdateVitals) {
+              onUpdateVitals({
+                hp: parseInt(metadata.energy) || playerStats.hp,
+              });
+            }
+          } catch (e) {}
+          addToast(t("logs.toasts.success_save"), "SUCCESS");
+        }
       }
-    }
 
-    if (success) {
-      setIsCreating(false);
-      setEditingLog(null);
-      refreshLogs(filters);
-      if (onLogAdded) onLogAdded();
-    }
-  };
+      if (success) {
+        setIsCreating(false);
+        setEditingLog(null);
+        refreshLogs(filters);
+        if (onLogAdded) onLogAdded();
+      }
+    },
+    [
+      editingLog,
+      updateLog,
+      addLog,
+      t,
+      onLogAdded,
+      onUpdateVitals,
+      playerStats.hp,
+      filters,
+      refreshLogs,
+      addToast,
+    ],
+  );
 
-  const handleDeleteClick = (e, id) => {
+  const handleDeleteClick = useCallback((e, id) => {
     e.stopPropagation();
     setDeleteId(id);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     if (!deleteId) return;
     const success = await deleteLog(deleteId);
     if (success) {
@@ -90,25 +107,68 @@ const SystemLogModule = ({
       if (onLogAdded) onLogAdded();
     }
     setDeleteId(null);
-  };
+  }, [
+    deleteId,
+    deleteLog,
+    t,
+    selectedLog,
+    setSelectedLog,
+    onLogAdded,
+    addToast,
+  ]);
 
-  const handleEdit = (e, log) => {
-    e.stopPropagation();
-    setEditingLog(log);
-    setIsCreating(true);
-    setSelectedLog(null);
-  };
+  const handleEdit = useCallback(
+    (e, log) => {
+      e.stopPropagation();
+      setEditingLog(log);
+      setIsCreating(true);
+      setSelectedLog(null);
+    },
+    [setSelectedLog],
+  );
 
-  const handleCancelCreate = () => {
+  const handleCancelCreate = useCallback(() => {
     setIsCreating(false);
     setEditingLog(null);
-  };
+  }, []);
+
+  const handleSelectLog = useCallback(
+    (log) => {
+      setSelectedLog(log);
+      setIsCreating(false);
+      setEditingLog(null);
+    },
+    [setSelectedLog],
+  );
+
+  const handleRefresh = useCallback(
+    () => refreshLogs(filters),
+    [refreshLogs, filters],
+  );
+
+  const handleToggleFilter = useCallback(
+    () => setIsFilterOpen((prev) => !prev),
+    [],
+  );
+
+  const handleCreateNew = useCallback(() => {
+    setIsCreating(true);
+    setEditingLog(null);
+    setSelectedLog(null);
+  }, [setSelectedLog]);
+
+  const handleMobileBack = useCallback(() => {
+    setSelectedLog(null);
+    setIsCreating(false);
+  }, [setSelectedLog]);
+
+  const handleCloseDialog = useCallback(() => setIsDeleteDialogOpen(false), []);
 
   return (
     <div className="max-w-7xl mx-auto w-full h-full md:h-[600px] bg-gray-950/95 border border-cyan-500/20 rounded-xl text-white overflow-hidden font-sans relative mb-0 md:mb-6 backdrop-blur-xl shadow-[0_0_40px_rgba(8,145,178,0.1)] flex flex-col">
       <SystemConfirmDialog
         isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        onClose={handleCloseDialog}
         onConfirm={confirmDelete}
         title="DELETE LOG ENTRY"
         message="This action will permanently erase the selected memory block. This data cannot be recovered. Are you sure you want to proceed?"
@@ -125,10 +185,7 @@ const SystemLogModule = ({
           {/* Mobile Back Button */}
           {(selectedLog || isCreating) && (
             <button
-              onClick={() => {
-                setSelectedLog(null);
-                setIsCreating(false);
-              }}
+              onClick={handleMobileBack}
               className="md:hidden p-2 -ml-2 text-cyan-400 hover:bg-white/10 rounded-full"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -153,7 +210,7 @@ const SystemLogModule = ({
           {!isCreating && (
             <div className="flex gap-2 text-xs font-mono bg-black/40 p-1 rounded-lg border border-white/10">
               <button
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                onClick={handleToggleFilter}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
                   isFilterOpen
                     ? "bg-cyan-500/20 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
@@ -164,11 +221,7 @@ const SystemLogModule = ({
               </button>
               <div className="w-px bg-white/10 mx-1 my-1"></div>
               <button
-                onClick={() => {
-                  setIsCreating(true);
-                  setEditingLog(null);
-                  setSelectedLog(null);
-                }}
+                onClick={handleCreateNew}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-md transition-all bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/50"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -176,7 +229,7 @@ const SystemLogModule = ({
               </button>
               <div className="w-px bg-white/10 mx-1 my-1"></div>
               <button
-                onClick={() => refreshLogs(filters)}
+                onClick={handleRefresh}
                 className={`flex items-center justify-center w-8 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors ${
                   loading ? "animate-spin text-cyan-400" : ""
                 }`}
@@ -203,16 +256,12 @@ const SystemLogModule = ({
           loading={loading}
           selectedLog={selectedLog}
           isCreating={isCreating}
-          onSelectLog={(log) => {
-            setSelectedLog(log);
-            setIsCreating(false);
-            setEditingLog(null);
-          }}
+          onSelectLog={handleSelectLog}
           onEdit={handleEdit}
           onDeleteClick={handleDeleteClick}
           filters={filters}
           onFilterChange={handleFilterChange}
-          onRefresh={() => refreshLogs(filters)}
+          onRefresh={handleRefresh}
           isFilterOpen={isFilterOpen}
         />
 
@@ -221,11 +270,11 @@ const SystemLogModule = ({
           selectedLog={selectedLog}
           isCreating={isCreating}
           editingLog={editingLog}
-          onClose={() => setSelectedLog(null)}
+          onClose={handleSelectLog.bind(null, null)}
           onCancelCreate={handleCancelCreate}
           onSave={handleSave}
           playerStats={playerStats}
-          onCreateClick={() => setIsCreating(true)}
+          onCreateClick={handleCreateNew}
         />
       </div>
     </div>

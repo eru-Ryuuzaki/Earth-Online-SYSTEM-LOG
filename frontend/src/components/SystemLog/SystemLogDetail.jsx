@@ -170,4 +170,4 @@ const SystemLogDetail = ({
   );
 };
 
-export default SystemLogDetail;
+export default React.memo(SystemLogDetail);

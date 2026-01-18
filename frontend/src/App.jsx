@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import HUDStats from "./components/HUDStats";
-import SettingsPanel from "./components/SettingsPanel";
 import BiosBoot from "./components/BiosBoot";
 import TerminalLogin from "./components/TerminalLogin";
 import SystemLogModule from "./components/SystemLog/SystemLogModule";
-import BirthdayModal from "./components/BirthdayModal";
 import { useGameEngine } from "./hooks/useGameEngine";
+
+// Lazy load components that are not immediately visible or critical
+const SettingsPanel = lazy(() => import("./components/SettingsPanel"));
+const BirthdayModal = lazy(() => import("./components/BirthdayModal"));
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -135,7 +137,9 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 text-white p-3 md:p-6 font-mono overflow-hidden flex flex-col">
       {isAuthenticated && !isBooting && !playerStats.birthday && (
-        <BirthdayModal username={username} onComplete={handleUpdateBirthday} />
+        <Suspense fallback={null}>
+          <BirthdayModal username={username} onComplete={handleUpdateBirthday} />
+        </Suspense>
       )}
 
       {isBooting && <BiosBoot onComplete={handleBootComplete} />}
@@ -169,12 +173,14 @@ const App = () => {
 
         {/* Settings Overlay */}
         {showSettings && (
-          <SettingsPanel
-            playerStats={playerStats}
-            onUpdateBirthday={handleUpdateBirthday}
-            onClose={() => setShowSettings(false)}
-            onLogout={handleLogout}
-          />
+          <Suspense fallback={<div className="fixed inset-0 bg-black/50 z-50" />}>
+            <SettingsPanel
+              playerStats={playerStats}
+              onUpdateBirthday={handleUpdateBirthday}
+              onClose={() => setShowSettings(false)}
+              onLogout={handleLogout}
+            />
+          </Suspense>
         )}
       </div>
     </div>

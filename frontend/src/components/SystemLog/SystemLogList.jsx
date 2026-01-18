@@ -147,4 +147,4 @@ const SystemLogList = ({
   );
 };
 
-export default SystemLogList;
+export default React.memo(SystemLogList);
