@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import SystemConfirmDialog from "../SystemConfirmDialog";
 import { useSystemLogs } from "../../hooks/useSystemLogs";
-import { BookOpen, Settings, ArrowLeft, Plus, RefreshCw } from "lucide-react";
+import {
+  BookOpen,
+  Settings,
+  ArrowLeft,
+  Plus,
+  RefreshCw,
+  Filter,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../../contexts/ToastContext";
 import SystemLogList from "./SystemLogList";
@@ -20,6 +27,7 @@ const SystemLogModule = ({
   const [isCreating, setIsCreating] = useState(false);
   const [editingLog, setEditingLog] = useState(null);
   const [filters, setFilters] = useState({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Delete confirmation state
   const [deleteId, setDeleteId] = useState(null);
@@ -145,6 +153,17 @@ const SystemLogModule = ({
           {!isCreating && (
             <div className="flex gap-2 text-xs font-mono bg-black/40 p-1 rounded-lg border border-white/10">
               <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
+                  isFilterOpen
+                    ? "bg-cyan-500/20 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Filter className="w-3.5 h-3.5" />
+              </button>
+              <div className="w-px bg-white/10 mx-1 my-1"></div>
+              <button
                 onClick={() => {
                   setIsCreating(true);
                   setEditingLog(null);
@@ -194,6 +213,7 @@ const SystemLogModule = ({
           filters={filters}
           onFilterChange={handleFilterChange}
           onRefresh={() => refreshLogs(filters)}
+          isFilterOpen={isFilterOpen}
         />
 
         {/* RIGHT PANEL: DETAIL / CREATE / EMPTY */}

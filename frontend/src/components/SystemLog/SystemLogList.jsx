@@ -19,6 +19,7 @@ const SystemLogList = ({
   onDeleteClick,
   filters,
   onFilterChange,
+  isFilterOpen,
 }) => {
   const { t } = useTranslation();
 
@@ -72,7 +73,11 @@ const SystemLogList = ({
     >
       {/* Filter Section */}
       <div className="p-4 border-b border-white/5 bg-black/40 relative z-40">
-        <SystemLogFilter filters={filters} onFilterChange={onFilterChange} />
+        <SystemLogFilter
+          filters={filters}
+          onFilterChange={onFilterChange}
+          isOpen={isFilterOpen}
+        />
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">

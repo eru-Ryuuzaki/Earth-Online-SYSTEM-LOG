@@ -6,9 +6,8 @@ import { useTranslation } from "react-i18next";
 const WEATHER_OPTS = ["☀️", "☁️", "🌧️", "⛈️", "❄️", "🌪️", "🌫️", "🌑"];
 const MOOD_OPTS = ["😊", "😐", "😢", "😡", "🤔", "😴", "🤩", "🤯", "🧘"];
 
-const SystemLogFilter = ({ filters, onFilterChange }) => {
+const SystemLogFilter = ({ filters, onFilterChange, isOpen }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
   const categories = Object.keys(logTemplates);
   const [localSearch, setLocalSearch] = useState(filters.search || "");
 
@@ -17,79 +16,56 @@ const SystemLogFilter = ({ filters, onFilterChange }) => {
     // Debounce or just update on blur/enter? Let's update on blur or enter for now to avoid too many requests
   };
 
-  const handleSearchSubmit = () => {
+  const submitSearch = () => {
     onFilterChange({ ...filters, search: localSearch });
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") handleSearchSubmit();
+    if (e.key === "Enter") {
+      submitSearch();
+    }
   };
 
   const updateFilter = (key, value) => {
-    onFilterChange({ ...filters, [key]: value === "ALL" ? "" : value });
+    const newFilters = { ...filters, [key]: value };
+    if (!value) delete newFilters[key];
+    onFilterChange(newFilters);
   };
 
   const clearFilters = () => {
-    setLocalSearch("");
-    onFilterChange({});
+    // Keep search, clear others? Or clear all?
+    // Usually clear filters means clear categories etc.
+    const newFilters = { search: filters.search };
+    onFilterChange(newFilters);
   };
 
-  const activeFilterCount = Object.keys(filters).filter(
-    (k) => filters[k] !== "" && filters[k] !== undefined,
-  ).length;
-
   const selectStyle =
-    "w-full bg-cyan-950/60 border border-cyan-500/50 rounded px-2 py-1.5 text-xs text-cyan-50 outline-none focus:border-cyan-400 focus:bg-cyan-900/80 transition-all appearance-none cursor-pointer hover:border-cyan-400 hover:bg-cyan-900/60 shadow-[0_0_10px_rgba(6,182,212,0.1)]";
+    "w-full bg-black/40 border border-white/10 rounded px-2 py-1.5 text-[10px] text-gray-300 focus:border-cyan-500/50 focus:outline-none appearance-none cursor-pointer hover:bg-white/5 transition-colors";
+
   const inputStyle =
-    "w-full bg-cyan-950/60 border border-cyan-500/50 rounded px-2 py-1.5 text-xs text-cyan-50 outline-none focus:border-cyan-400 focus:bg-cyan-900/80 transition-all placeholder-cyan-400/30 shadow-[0_0_10px_rgba(6,182,212,0.1)]";
+    "w-full bg-black/40 border border-white/10 rounded px-2 py-1.5 text-[10px] text-gray-300 focus:border-cyan-500/50 focus:outline-none hover:bg-white/5 transition-colors";
 
   return (
-    <div className="mb-6 space-y-2">
-      <div className="flex items-center gap-2">
+    <div className="relative">
+      <div className="flex gap-2">
+        {/* Search Input */}
         <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
             type="text"
             value={localSearch}
             onChange={handleSearchChange}
             onKeyDown={handleKeyDown}
-            onBlur={handleSearchSubmit}
+            onBlur={submitSearch}
             placeholder={t("logs.filter.search_placeholder")}
-            className="w-full bg-black/60 border border-cyan-500/30 rounded pl-10 pr-4 py-2 text-cyan-100 placeholder-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-mono text-sm"
+            className="w-full bg-black/40 border border-white/10 rounded pl-9 pr-4 py-2 text-xs text-white placeholder-gray-600 focus:border-cyan-500/50 focus:outline-none transition-all"
           />
-          <Search className="w-4 h-4 text-cyan-500 absolute left-3 top-2.5" />
         </div>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`p-2 border rounded transition-colors flex items-center gap-2 ${
-            isOpen || activeFilterCount > 0
-              ? "bg-cyan-500/20 border-cyan-500 text-cyan-400"
-              : "bg-black/40 border-gray-700 text-gray-500 hover:text-cyan-400 hover:border-cyan-500/50"
-          }`}
-        >
-          <Filter className="w-4 h-4" />
-          <span className="text-xs font-bold hidden md:inline">
-            {t("logs.filter.button")}
-          </span>
-          {activeFilterCount > 0 && (
-            <span className="bg-cyan-500 text-black text-[10px] font-bold px-1.5 rounded-full">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
-        {activeFilterCount > 0 && (
-          <button
-            onClick={clearFilters}
-            className="p-2 text-gray-500 hover:text-red-400 transition-colors"
-            title="Clear Filters"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
       </div>
 
       {/* Expanded Filter Panel */}
       {isOpen && (
-        <div className="bg-black/95 border border-cyan-500/30 rounded-lg p-5 animate-in slide-in-from-top-2 duration-200 backdrop-blur-xl absolute left-0 right-0 z-50 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] mt-2">
+        <div className="bg-black/40 border-t border-white/5 pt-4 mt-4 animate-in slide-in-from-top-2 duration-200">
           <div className="flex flex-col gap-6">
             {/* ROW 1: Category & Type */}
             <div className="grid grid-cols-2 gap-6">
